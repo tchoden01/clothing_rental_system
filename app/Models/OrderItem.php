@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class OrderItem extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'seller_id',
+        'quantity',
+        'rental_price',
+        'seller_earnings',
+        'rental_start_date',
+        'rental_end_date',
+    ];
+
+    protected $casts = [
+        'rental_price' => 'decimal:2',
+        'seller_earnings' => 'decimal:2',
+        'rental_start_date' => 'date',
+        'rental_end_date' => 'date',
+    ];
+
+    /**
+     * Get the order that owns the order item.
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Get the product that owns the order item.
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the seller that owns the order item.
+     */
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
+    }
+}

@@ -1,66 +1,255 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Clothing Rental Marketplace Web System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A complete rental clothing marketplace platform built with Laravel, allowing customers to rent traditional clothing from verified sellers.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Customer Features
+- Browse and search rental items without login
+- View product details (size, color, description, price, availability)
+- Add items to cart and manage cart
+- User registration and authentication
+- Place rental orders with date selection
+- Choose delivery method (pickup or home delivery)
+- Multiple payment methods (Digital payment, Cash on Delivery)
+- View order history and status
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Seller Features
+- Seller registration with shop details
+- Seller verification by admin
+- Add and manage rental items
+- Upload product images
+- View platform fees and earnings breakdown
+- Manage orders
+- Handle returns and report damages
+- Damage fee calculation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Admin Features
+- Seller account verification
+- Product approval/rejection system
+- Order management
+- Category management
+- Platform commission settings
+- View revenue and commission statistics
+- Manage all system users
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Framework:** Laravel 10.x
+- **Backend:** PHP 8.x
+- **Frontend:** HTML, CSS, Bootstrap 5.3
+- **Database:** MySQL
+- **Server:** XAMPP
+- **Development Tool:** VS Code
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## System Requirements
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP >= 8.1
+- MySQL >= 5.7
+- Composer
+- XAMPP (Apache + MySQL)
+- Node.js & NPM (optional, for asset compilation)
 
-## Laravel Sponsors
+## Installation & Setup
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Clone the Repository
 
-### Premium Partners
+```bash
+cd C:\xampp\htdocs
+git clone https://github.com/tchoden01/clothing_rental_system.git
+cd clothing_rental
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 2. Install Dependencies
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Environment Configuration
 
-## Code of Conduct
+The `.env` file is already configured with:
+- Database name: `clothing_rental_system`
+- Database username: `root`
+- Database password: (empty)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Create Database
 
-## Security Vulnerabilities
+Open phpMyAdmin (http://localhost/phpmyadmin) and create a database named `clothing_rental_system`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Or use MySQL command line:
+```sql
+CREATE DATABASE clothing_rental_system;
+```
+
+### 5. Run Migrations
+
+```bash
+php artisan migrate
+```
+
+### 6. Seed Database
+
+```bash
+php artisan db:seed
+```
+
+This will create:
+- Admin account (email: admin@clothing.com, password: admin123)
+- Sample categories
+- Platform settings (15% commission rate)
+
+### 7. Create Storage Link
+
+```bash
+php artisan storage:link
+```
+
+### 8. Start the Server
+
+```bash
+php artisan serve
+```
+
+Visit: http://localhost:8000
+
+## Default Login Credentials
+
+**Admin Account:**
+- Email: admin@clothing.com
+- Password: admin123
+
+## Database Structure
+
+### Tables Created:
+
+1. **users** - System users (customers, sellers, admin)
+2. **sellers** - Seller profile information
+3. **categories** - Product categories
+4. **products** - Rental items
+5. **carts** - Shopping cart items
+6. **orders** - Rental orders
+7. **order_items** - Items in each order
+8. **payments** - Payment records
+9. **damage_reports** - Product damage reports
+10. **platform_settings** - System configuration
+
+## Application Structure
+
+### Models
+- User, Seller, Category, Product, Cart, Order, OrderItem, Payment, DamageReport, PlatformSetting
+
+### Controllers
+- AuthController - Authentication
+- CustomerController - Customer operations
+- ProductController - Product browsing
+- CartController - Cart management
+- OrderController - Order processing
+- SellerController - Seller operations
+- AdminController - Admin operations
+
+### Middleware
+- CheckAdmin - Admin access control
+- CheckSeller - Seller access control
+- CheckCustomer - Customer access control
+
+### Views
+- layouts/app.blade.php - Main layout
+- home.blade.php - Homepage
+- auth/* - Login and registration
+- products/* - Product listing and details
+- cart/* - Shopping cart
+- orders/* - Order management
+- seller/* - Seller dashboard and management
+- admin/* - Admin dashboard and management
+
+## Routes
+
+### Public Routes
+- `/` - Homepage
+- `/products` - Browse products
+- `/products/{id}` - Product details
+- `/login` - Login page
+- `/register` - Customer registration
+- `/register/seller` - Seller registration
+
+### Customer Routes (Authenticated)
+- `/cart` - Shopping cart
+- `/checkout` - Checkout page
+- `/orders` - Order history
+- `/profile` - User profile
+
+### Seller Routes (Authenticated + Seller Role)
+- `/seller/dashboard` - Seller dashboard
+- `/seller/products` - Manage products
+- `/seller/orders` - View orders
+- `/seller/orders/{id}/return` - Process returns
+
+### Admin Routes (Authenticated + Admin Role)
+- `/admin/dashboard` - Admin dashboard
+- `/admin/sellers` - Manage sellers
+- `/admin/products` - Approve products
+- `/admin/orders` - Manage orders
+- `/admin/categories` - Manage categories
+- `/admin/settings` - Platform settings
+
+## Order Flow
+
+1. Customer browses and adds products to cart
+2. Customer proceeds to checkout
+3. Customer selects rental dates and delivery method
+4. Customer chooses payment method and places order
+5. Admin assigns staff to collect item from seller
+6. Staff collects item and stores at pickup point
+7. Customer picks up or receives delivery
+8. Customer uses item during rental period
+9. Customer returns item
+10. Staff returns item to seller
+11. Seller checks condition and reports damage if any
+12. System calculates damage fees
+13. Final settlement and order completion
+
+## Commission System
+
+- Platform charges a configurable commission (default: 15%)
+- Sellers receive: Rental Price - Commission
+- Admin can adjust commission rate in settings
+- Commission is calculated per order item
+
+## Image Upload
+
+- Product images stored in `storage/app/public/products`
+- Multiple images supported per product
+- Accepted formats: JPEG, PNG, JPG, GIF
+- Max size: 2MB per image
+
+## Development Notes
+
+- No starter kits (Breeze/Jetstream) used
+- Custom authentication system
+- Bootstrap for responsive UI
+- MVC architecture following Laravel best practices
+- Foreign key relationships in database
+- Role-based access control
+
+## Future Enhancements
+
+- Email notifications
+- Payment gateway integration
+- Rating and review system
+- Real-time order tracking
+- Advanced search filters
+- Seller analytics dashboard
+- Customer wishlist
+- Promotional codes
+
+## Support
+
+For issues or questions, please contact the development team or create an issue on GitHub.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is developed for educational purposes.
+
+---
+Built with ❤️ using Laravel
