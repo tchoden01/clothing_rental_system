@@ -95,6 +95,11 @@ Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function (
 // Admin routes (authenticated + admin role)
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Customers
+    Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
+    Route::post('/customers/{id}/toggle-suspension', [AdminController::class, 'toggleCustomerSuspension'])->name('customers.toggle-suspension');
+    Route::get('/customers/{id}/orders', [AdminController::class, 'customerOrders'])->name('customers.orders');
     
     // Sellers
     Route::get('/sellers', [AdminController::class, 'sellers'])->name('sellers');

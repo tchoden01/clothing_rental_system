@@ -4,6 +4,28 @@ A complete rental clothing marketplace platform built with Laravel, allowing cus
 
 ## Features
 
+## Role-Based Modules
+
+### Admin
+- Manage Users
+- Manage Sellers
+- Monitor Products
+- Monitor Rentals
+- Reports
+
+### Seller
+- Manage Products
+- Manage Inventory
+- View Orders
+- View Earnings
+
+### Customer
+- Register / Login
+- Browse Clothes
+- Add to Cart
+- Checkout Rental
+- View Orders
+
 ### Customer Features
 - Browse and search rental items without login
 - View product details (size, color, description, price, availability)

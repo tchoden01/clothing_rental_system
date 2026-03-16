@@ -293,7 +293,7 @@
         <aside class="admin-sidebar d-flex flex-column">
             <ul class="sidebar-nav">
                 <li><a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="bi bi-house-door-fill"></i><span>Dashboard</span></a></li>
-                <li><a href="{{ route('admin.categories') }}" class="sidebar-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}"><i class="bi bi-people"></i><span>Users</span></a></li>
+                <li><a href="{{ route('admin.customers') }}" class="sidebar-link {{ request()->routeIs('admin.customers*') ? 'active' : '' }}"><i class="bi bi-people"></i><span>Users</span></a></li>
                 <li><a href="{{ route('admin.sellers') }}" class="sidebar-link {{ request()->routeIs('admin.sellers*') ? 'active' : '' }}"><i class="bi bi-shop"></i><span>Sellers</span>@if(isset($pendingSellers) && $pendingSellers > 0)<span class="sidebar-badge">{{ $pendingSellers }}</span>@endif</a></li>
                 <li><a href="{{ route('admin.products') }}" class="sidebar-link {{ request()->routeIs('admin.products*') ? 'active' : '' }}"><i class="bi bi-ui-checks-grid"></i><span>Item Approvals</span></a></li>
                 <li><a href="{{ route('admin.orders') }}" class="sidebar-link {{ request()->routeIs('admin.orders*') ? 'active' : '' }}"><i class="bi bi-bag-check"></i><span>Orders</span></a></li>

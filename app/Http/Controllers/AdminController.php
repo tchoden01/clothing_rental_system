@@ -75,6 +75,54 @@ class AdminController extends Controller
         return view('admin.sellers.index', compact('sellers'));
     }
 
+    // List customers
+    public function customers(Request $request)
+    {
+        $search = trim((string) $request->input('search', ''));
+
+        $customers = User::where('role', 'customer')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('contact_number', 'like', '%' . $search . '%');
+                });
+            })
+            ->withCount('orders')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.customers.index', compact('customers', 'search'));
+    }
+
+    // Suspend or reactivate customer account
+    public function toggleCustomerSuspension($id)
+    {
+        $customer = User::where('role', 'customer')->findOrFail($id);
+        $customer->is_suspended = !$customer->is_suspended;
+        $customer->save();
+
+        $message = $customer->is_suspended
+            ? 'Customer account suspended successfully.'
+            : 'Customer account reactivated successfully.';
+
+        return back()->with('success', $message);
+    }
+
+    // View customer order history
+    public function customerOrders($id)
+    {
+        $customer = User::where('role', 'customer')->findOrFail($id);
+
+        $orders = Order::with(['orderItems.product', 'payment'])
+            ->where('user_id', $customer->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        return view('admin.customers.orders', compact('customer', 'orders'));
+    }
+
     // Verify seller
     public function verifySeller($id)
     {

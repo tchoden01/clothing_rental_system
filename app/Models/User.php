@@ -24,6 +24,7 @@ class User extends Authenticatable
         'role',
         'contact_number',
         'address',
+        'is_suspended',
     ];
 
     /**
@@ -44,6 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_suspended' => 'boolean',
     ];
 
     /**
@@ -110,5 +112,13 @@ class User extends Authenticatable
     public function isCustomer()
     {
         return $this->role === 'customer';
+    }
+
+    /**
+     * Check if user account is suspended.
+     */
+    public function isSuspended()
+    {
+        return (bool) $this->is_suspended;
     }
 }
