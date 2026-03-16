@@ -21,6 +21,9 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
             color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Header */
@@ -105,6 +108,7 @@
         .seller-layout {
             display: flex;
             min-height: calc(100vh - 80px);
+            flex: 1;
         }
         
         .seller-sidebar {
@@ -352,6 +356,43 @@
             font-weight: 500;
             border-radius: 6px;
         }
+
+        .back-arrow-btn {
+            position: fixed;
+            left: 0.9rem;
+            top: 5.6rem;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c5f5f;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            z-index: 1200;
+        }
+
+        .back-arrow-btn:hover {
+            color: #234848;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+        }
+
+        .seller-footer {
+            background: #234848;
+            color: rgba(255, 255, 255, 0.92);
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 0.9rem 2rem;
+            font-size: 0.9rem;
+        }
+
+        .seller-footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
         
         @media (max-width: 992px) {
             .seller-sidebar {
@@ -368,12 +409,33 @@
             .seller-main {
                 padding: 1.5rem;
             }
+
+            .seller-footer {
+                padding: 0.85rem 1rem;
+            }
+
+            .seller-footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+
+            .back-arrow-btn {
+                top: 5rem;
+                left: 0.7rem;
+                width: 36px;
+                height: 36px;
+            }
         }
     </style>
     
     @stack('styles')
 </head>
 <body>
+    <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrSellerHome()">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+
     <!-- Header -->
     <header class="seller-header">
         <div class="d-flex justify-content-between align-items-center">
@@ -497,9 +559,25 @@
             @yield('content')
         </main>
     </div>
+
+    <footer class="seller-footer">
+        <div class="seller-footer-inner">
+            <div><strong>DrukWear Seller Portal</strong></div>
+            <div>&copy; {{ date('Y') }} DrukWear. All rights reserved.</div>
+        </div>
+    </footer>
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function goBackOrSellerHome() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = "{{ route('seller.dashboard') }}";
+        }
+    </script>
     
     @stack('scripts')
 </body>

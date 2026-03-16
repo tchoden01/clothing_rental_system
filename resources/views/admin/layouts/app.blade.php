@@ -33,6 +33,8 @@
                 radial-gradient(circle at 85% 12%, rgba(66, 111, 95, 0.08), transparent 34%),
                 linear-gradient(180deg, #f7efe4, #efe3d3);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .admin-header {
@@ -105,6 +107,7 @@
             display: grid;
             grid-template-columns: 260px 1fr;
             min-height: calc(100vh - 76px);
+            flex: 1;
         }
 
         .admin-sidebar {
@@ -180,6 +183,40 @@
             padding: 1.1rem 1.25rem 1.45rem;
         }
 
+        .back-arrow-btn {
+            position: fixed;
+            left: 0.9rem;
+            top: 5.2rem;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(0, 0, 0, 0.14);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #2d544f;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            z-index: 1200;
+        }
+
+        .back-arrow-btn:hover {
+            color: #234848;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+        }
+
+        .admin-footer {
+            background: #2d544f;
+            color: rgba(255, 255, 255, 0.92);
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 0.8rem 1.25rem;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
         @media (max-width: 991px) {
             .admin-layout {
                 grid-template-columns: 1fr;
@@ -193,12 +230,29 @@
             .admin-top-nav {
                 display: none;
             }
+
+            .admin-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.2rem;
+            }
+
+            .back-arrow-btn {
+                top: 4.9rem;
+                left: 0.7rem;
+                width: 36px;
+                height: 36px;
+            }
         }
     </style>
 
     @stack('styles')
 </head>
 <body>
+    <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrAdminHome()">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+
     <header class="admin-header d-flex align-items-center justify-content-between gap-2">
         <div class="d-flex align-items-center min-w-0">
             <a href="{{ route('admin.dashboard') }}" class="admin-brand">
@@ -276,7 +330,21 @@
         </main>
     </div>
 
+    <footer class="admin-footer">
+        <div><strong>DrukWear Admin Portal</strong></div>
+        <div>&copy; {{ date('Y') }} DrukWear. All rights reserved.</div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function goBackOrAdminHome() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = "{{ route('admin.dashboard') }}";
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>

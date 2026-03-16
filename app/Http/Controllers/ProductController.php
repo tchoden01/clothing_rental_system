@@ -54,6 +54,63 @@ class ProductController extends Controller
             }
         }
 
+        // Size filter
+        $sizeFilter = $request->input('size');
+        if (!is_null($sizeFilter)) {
+            $sizeValues = is_array($sizeFilter) ? $sizeFilter : [$sizeFilter];
+            $sizeValues = array_values(array_filter($sizeValues, function ($value) {
+                return $value !== null && $value !== '';
+            }));
+
+            if (!empty($sizeValues)) {
+                $query->whereIn('size', $sizeValues);
+            }
+        }
+
+        // Color filter
+        $colorFilter = $request->input('color');
+        if (!is_null($colorFilter)) {
+            $colorValues = is_array($colorFilter) ? $colorFilter : [$colorFilter];
+            $colorValues = array_values(array_filter($colorValues, function ($value) {
+                return $value !== null && $value !== '';
+            }));
+
+            if (!empty($colorValues)) {
+                $query->whereIn('color', $colorValues);
+            }
+        }
+
+        // Occasion filter
+        $occasionFilter = $request->input('occasion');
+        if (!is_null($occasionFilter)) {
+            $occasionValues = is_array($occasionFilter) ? $occasionFilter : [$occasionFilter];
+            $occasionValues = array_values(array_filter($occasionValues, function ($value) {
+                return $value !== null && $value !== '';
+            }));
+
+            if (!empty($occasionValues)) {
+                $query->whereIn('occasion', $occasionValues);
+            }
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'newest');
+        switch ($sort) {
+            case 'price_asc':
+                $query->orderBy('rental_price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('rental_price', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'newest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
         $products = $query->paginate(12);
         $categories = Category::all();
 

@@ -21,6 +21,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
         }
         
         /* Navbar Styles */
@@ -180,6 +187,39 @@
         .dropdown-toggle::after {
             margin-left: 0.4rem;
         }
+
+        .back-arrow-btn {
+            position: fixed;
+            left: 1rem;
+            top: 5.4rem;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.96);
+            color: #2c5f5f;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+            z-index: 1200;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .back-arrow-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+            color: #234848;
+        }
+
+        @media (max-width: 768px) {
+            .back-arrow-btn {
+                top: 4.9rem;
+                left: 0.75rem;
+                width: 38px;
+                height: 38px;
+            }
+        }
         
         /* Hero Section */
         .hero-section {
@@ -333,8 +373,10 @@
         
         .product-card img {
             height: 300px;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center;
             width: 100%;
+            background: #f4f1eb;
         }
         
         .product-card .card-body {
@@ -648,6 +690,10 @@
     @stack('styles')
 </head>
 <body>
+    <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrHome()">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
@@ -849,6 +895,15 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function goBackOrHome() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = "{{ route('home') }}";
+        }
+    </script>
     
     @stack('scripts')
 </body>

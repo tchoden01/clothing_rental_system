@@ -4,290 +4,454 @@
 
 @push('styles')
 <style>
-    .filter-sidebar {
+    .explore-page {
+        background: #f4f2ed;
+        padding-bottom: 2rem;
+    }
+
+    .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin: 0.35rem 0 1rem;
+    }
+
+    .quick-chip {
+        border: 1px solid #d4cec2;
+        color: #6b6458;
+        background: #fbfaf7;
+        border-radius: 999px;
+        padding: 0.42rem 0.95rem;
+        font-size: 0.85rem;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .quick-chip:hover,
+    .quick-chip.active {
+        border-color: #cf4439;
+        color: #cf4439;
         background: #fff;
-        border-right: 1px solid #e0e0e0;
-        min-height: 80vh;
-        padding: 0;
     }
+
+    .explore-layout {
+        display: grid;
+        grid-template-columns: 290px 1fr;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .filter-sidebar {
+        background: #fcfbf8;
+        border: 1px solid #dfd8cd;
+        border-radius: 14px;
+        overflow: hidden;
+        position: sticky;
+        top: 98px;
+    }
+
     .filter-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    .filter-section {
-        border-bottom: 1px solid #e0e0e0;
-        padding: 1.5rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    .filter-section:hover {
-        background-color: #f9f9f9;
-    }
-    .filter-section-title {
+        padding: 1rem 1.1rem;
+        border-bottom: 1px solid #e8e2d7;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 1rem;
-        color: #333;
-        font-weight: 400;
     }
+
+    .view-all-link {
+        color: #2f2b25;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .view-all-link:hover {
+        color: #cf4439;
+    }
+
+    .filter-section {
+        border-bottom: 1px solid #ece6dc;
+    }
+
+    .filter-section:last-child {
+        border-bottom: none;
+    }
+
+    .filter-section-toggle {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        padding: 0.95rem 1.1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #3a352e;
+        font-weight: 500;
+    }
+
     .filter-section-content {
-        margin-top: 1rem;
+        padding: 0 1.1rem 0.9rem;
         display: none;
     }
+
     .filter-section-content.show {
         display: block;
     }
+
     .filter-option {
-        padding: 0.5rem 0;
-        color: #666;
-        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #5f584d;
+        font-size: 0.92rem;
+        padding: 0.22rem 0;
         cursor: pointer;
-        transition: color 0.2s;
     }
-    .filter-option:hover {
-        color: #4a90e2;
+
+    .products-panel {
+        background: #fbfaf7;
+        border: 1px solid #dfd8cd;
+        border-radius: 14px;
+        padding: 1rem;
     }
-    .filter-option input[type="checkbox"] {
-        margin-right: 0.5rem;
+
+    .products-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
     }
-    .view-all-link {
-        color: #333;
-        text-decoration: none;
+
+    .products-meta {
+        color: #766f63;
+        font-size: 0.95rem;
+    }
+
+    .sort-select {
+        max-width: 220px;
+        border-color: #d4cec2;
+    }
+
+    .product-card {
+        border: 1px solid #e3ddd1;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        height: 100%;
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 22px rgba(42, 37, 28, 0.14);
+    }
+
+    .product-image-wrap {
+        background: #f4f1eb;
+        height: 290px;
+    }
+
+    .product-image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .product-card-body {
+        padding: 1rem;
+    }
+
+    .product-category {
+        display: inline-flex;
+        padding: 0.18rem 0.58rem;
+        border-radius: 999px;
+        background: #e8f1ff;
+        color: #2f77d5;
+        font-size: 0.74rem;
+        font-weight: 600;
+        margin-bottom: 0.45rem;
+    }
+
+    .product-name {
+        margin: 0 0 0.32rem;
+        color: #29251f;
+        font-size: 1.22rem;
         font-weight: 500;
-        display: block;
     }
-    .view-all-link:hover {
-        color: #4a90e2;
+
+    .product-desc {
+        color: #7b7366;
+        font-size: 0.9rem;
+        margin-bottom: 0.42rem;
     }
-    .product-grid {
-        padding-left: 2rem;
+
+    .product-meta {
+        color: #5f584d;
+        font-size: 0.87rem;
+        margin-bottom: 0.2rem;
     }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+
+    .product-footer {
+        margin-top: 0.65rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
     }
-    @media (max-width: 768px) {
-        .filter-sidebar {
-            border-right: none;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 2rem;
-            min-height: auto;
+
+    .product-price {
+        color: #2f77d5;
+        font-weight: 700;
+        font-size: 1.38rem;
+        line-height: 1;
+    }
+
+    .btn-view {
+        border-radius: 999px;
+        padding: 0.36rem 1rem;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        background: #f8f5ef;
+        border: 1px dashed #d5cfc4;
+        border-radius: 12px;
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6e675b;
+    }
+
+    @media (max-width: 1199px) {
+        .explore-layout {
+            grid-template-columns: 260px 1fr;
         }
-        .product-grid {
-            padding-left: 0;
+    }
+
+    @media (max-width: 991px) {
+        .explore-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-sidebar {
+            position: static;
         }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <!-- Left Sidebar Filter -->
-        <div class="col-lg-3 col-md-4">
-            <div class="filter-sidebar">
-                <div class="filter-header">
-                    <a href="{{ route('products.index') }}" class="view-all-link">View All Styles</a>
-                </div>
+@php
+    $selectedCategories = array_map('strval', (array) request('category', []));
+    $selectedSizes = array_map('strval', (array) request('size', []));
+    $selectedColors = array_map('strval', (array) request('color', []));
+    $selectedOccasions = array_map('strval', (array) request('occasion', []));
+    $selectedSort = request('sort', 'newest');
 
-                @php
-                    $selectedCategories = array_map('strval', (array) request('category', []));
-                    $selectedSizes = array_map('strval', (array) request('size', []));
-                    $selectedColors = array_map('strval', (array) request('color', []));
-                    $selectedOccasions = array_map('strval', (array) request('occasion', []));
-                @endphp
+    $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
+    $colors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Multi-color', 'Pink', 'Mix'];
+    $occasions = ['Wedding', 'Festival', 'Ceremonial', 'Casual', 'Formal'];
+@endphp
 
-                <!-- Category Filter -->
-                <div class="filter-section" onclick="toggleFilter('category')">
-                    <div class="filter-section-title">
-                        <span>Category</span>
-                        <i class="bi bi-chevron-right" id="category-icon"></i>
+<div class="container-fluid explore-page">
+    <div class="container-fluid px-lg-4">
+        <form id="exploreFilterForm" method="GET" action="{{ route('products.index') }}">
+            @if(request('search'))
+                <input type="hidden" name="search" value="{{ request('search') }}">
+            @endif
+
+            <section class="chip-row">
+                <button type="button" class="quick-chip {{ empty($selectedCategories) ? 'active' : '' }}" data-clear="category">All</button>
+                @foreach($categories as $category)
+                    <button
+                        type="button"
+                        class="quick-chip {{ in_array((string) $category->id, $selectedCategories, true) ? 'active' : '' }}"
+                        data-filter-type="category"
+                        data-filter-value="{{ $category->id }}"
+                    >
+                        {{ $category->name }}
+                    </button>
+                @endforeach
+            </section>
+
+            <div class="explore-layout">
+                <aside class="filter-sidebar">
+                    <div class="filter-header">
+                        <a href="{{ route('products.index') }}" class="view-all-link">View All Styles</a>
+                        <a href="{{ route('products.index') }}" class="small text-muted">Reset</a>
                     </div>
-                    <div class="filter-section-content" id="category-content">
-                        @foreach($categories as $category)
-                            <div class="filter-option">
-                                <label style="cursor: pointer; display: block;">
-                                    <input type="checkbox" name="category[]" value="{{ $category->id }}" 
-                                           {{ in_array((string) $category->id, $selectedCategories, true) ? 'checked' : '' }}
-                                           onchange="applyFilter()">
-                                    {{ $category->name }}
+
+                    <section class="filter-section">
+                        <button type="button" class="filter-section-toggle" data-filter-target="category-content" data-filter-icon="category-icon">
+                            <span>Category</span>
+                            <i class="bi bi-chevron-down" id="category-icon"></i>
+                        </button>
+                        <div class="filter-section-content show" id="category-content">
+                            @foreach($categories as $category)
+                                <label class="filter-option">
+                                    <input type="checkbox" name="category[]" value="{{ $category->id }}" {{ in_array((string) $category->id, $selectedCategories, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                    <span>{{ $category->name }}</span>
                                 </label>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Size Filter -->
-                <div class="filter-section" onclick="toggleFilter('size')">
-                    <div class="filter-section-title">
-                        <span>Size + Fit</span>
-                        <i class="bi bi-chevron-right" id="size-icon"></i>
-                    </div>
-                    <div class="filter-section-content" id="size-content">
-                        @php
-                            $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
-                        @endphp
-                        @foreach($sizes as $size)
-                            <div class="filter-option">
-                                <label style="cursor: pointer; display: block;">
-                                    <input type="checkbox" name="size[]" value="{{ $size }}" 
-                                           {{ in_array((string) $size, $selectedSizes, true) ? 'checked' : '' }}
-                                           onchange="applyFilter()">
-                                    {{ $size }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Color Filter -->
-                <div class="filter-section" onclick="toggleFilter('color')">
-                    <div class="filter-section-title">
-                        <span>Colors</span>
-                        <i class="bi bi-chevron-right" id="color-icon"></i>
-                    </div>
-                    <div class="filter-section-content" id="color-content">
-                        @php
-                            $colors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Multi-color'];
-                        @endphp
-                        @foreach($colors as $color)
-                            <div class="filter-option">
-                                <label style="cursor: pointer; display: block;">
-                                    <input type="checkbox" name="color[]" value="{{ $color }}" 
-                                           {{ in_array((string) $color, $selectedColors, true) ? 'checked' : '' }}
-                                           onchange="applyFilter()">
-                                    {{ $color }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Occasion Filter -->
-                <div class="filter-section" onclick="toggleFilter('occasion')">
-                    <div class="filter-section-title">
-                        <span>Occasion</span>
-                        <i class="bi bi-chevron-right" id="occasion-icon"></i>
-                    </div>
-                    <div class="filter-section-content" id="occasion-content">
-                        @php
-                            $occasions = ['Wedding', 'Festival', 'Ceremonial', 'Casual', 'Formal'];
-                        @endphp
-                        @foreach($occasions as $occasion)
-                            <div class="filter-option">
-                                <label style="cursor: pointer; display: block;">
-                                    <input type="checkbox" name="occasion[]" value="{{ $occasion }}" 
-                                           {{ in_array((string) $occasion, $selectedOccasions, true) ? 'checked' : '' }}
-                                           onchange="applyFilter()">
-                                    {{ $occasion }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Products Grid -->
-        <div class="col-lg-9 col-md-8 product-grid">
-            <div class="mb-4">
-                <h2 style="font-weight: 300; font-size: 2rem; color: #333;">All Styles</h2>
-                <p style="color: #666;">{{ $products->total() }} items</p>
-            </div>
-
-            <div class="row">
-            <div class="row">
-        @forelse($products as $product)
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card h-100" style="border: none; border-radius: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s ease;">
-                    @if($product->images && count($product->images) > 0)
-                        <img src="{{ asset('storage/' . $product->images[0]) }}" class="card-img-top" alt="{{ $product->name }}" style="height: 350px; object-fit: cover;">
-                    @else
-                        <div class="d-flex align-items-center justify-content-center" style="height: 350px; background: linear-gradient(135deg, #e8e3dc 0%, #d4cfc4 100%);">
-                            <i class="bi bi-image" style="font-size: 3rem; color: #999;"></i>
+                            @endforeach
                         </div>
-                    @endif
-                    <div class="card-body" style="padding: 1.5rem;">
-                        <span class="badge mb-2" style="background-color: #4a90e2; font-weight: 400;">{{ $product->category->name }}</span>
-                        <h5 class="card-title" style="font-weight: 400; font-size: 1.1rem; color: #333;">{{ $product->name }}</h5>
-                        <p class="card-text" style="color: #999; font-size: 0.9rem;">{{ Str::limit($product->description, 60) }}</p>
-                        @if($product->size)
-                            <p class="mb-1" style="font-size: 0.85rem; color: #666;"><strong>Size:</strong> {{ $product->size }}</p>
-                        @endif
-                        @if($product->color)
-                            <p class="mb-1" style="font-size: 0.85rem; color: #666;"><strong>Color:</strong> {{ $product->color }}</p>
-                        @endif
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <p class="mb-0" style="color: #4a90e2; font-weight: 500; font-size: 1.1rem;">Nu. {{ number_format($product->rental_price, 0) }}/day</p>
-                            <a href="{{ route('products.show', $product->id) }}" class="btn btn-sm" style="background-color: #4a90e2; color: white; border-radius: 20px; padding: 0.5rem 1.5rem;">View</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="col-12">
-                <div class="alert" style="background-color: #f8f8f8; border: none; color: #666; text-align: center; padding: 3rem;">
-                    <i class="bi bi-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                    <p style="margin: 0;">No products found. Try adjusting your filters.</p>
-                </div>
-            </div>
-        @endforelse
-    </div>
+                    </section>
 
-    <!-- Pagination -->
-    <div class="row mt-4">
-        <div class="col-12">
-            {{ $products->links() }}
-        </div>
-    </div>
-        </div>
+                    <section class="filter-section">
+                        <button type="button" class="filter-section-toggle" data-filter-target="size-content" data-filter-icon="size-icon">
+                            <span>Size + Fit</span>
+                            <i class="bi bi-chevron-down" id="size-icon"></i>
+                        </button>
+                        <div class="filter-section-content show" id="size-content">
+                            @foreach($sizes as $size)
+                                <label class="filter-option">
+                                    <input type="checkbox" name="size[]" value="{{ $size }}" {{ in_array((string) $size, $selectedSizes, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                    <span>{{ $size }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <section class="filter-section">
+                        <button type="button" class="filter-section-toggle" data-filter-target="color-content" data-filter-icon="color-icon">
+                            <span>Colors</span>
+                            <i class="bi bi-chevron-down" id="color-icon"></i>
+                        </button>
+                        <div class="filter-section-content show" id="color-content">
+                            @foreach($colors as $color)
+                                <label class="filter-option">
+                                    <input type="checkbox" name="color[]" value="{{ $color }}" {{ in_array((string) $color, $selectedColors, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                    <span>{{ $color }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <section class="filter-section">
+                        <button type="button" class="filter-section-toggle" data-filter-target="occasion-content" data-filter-icon="occasion-icon">
+                            <span>Occasion</span>
+                            <i class="bi bi-chevron-down" id="occasion-icon"></i>
+                        </button>
+                        <div class="filter-section-content show" id="occasion-content">
+                            @foreach($occasions as $occasion)
+                                <label class="filter-option">
+                                    <input type="checkbox" name="occasion[]" value="{{ $occasion }}" {{ in_array((string) $occasion, $selectedOccasions, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                    <span>{{ $occasion }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </section>
+                </aside>
+
+                <section class="products-panel">
+                    <div class="products-toolbar">
+                        <div>
+                            <h2 class="mb-0" style="font-weight: 500; color: #2e2a23;">All Styles</h2>
+                            <div class="products-meta">{{ $products->total() }} results</div>
+                        </div>
+                        <select class="form-select sort-select" name="sort" onchange="applyFilter()">
+                            <option value="newest" {{ $selectedSort === 'newest' ? 'selected' : '' }}>Newest</option>
+                            <option value="oldest" {{ $selectedSort === 'oldest' ? 'selected' : '' }}>Oldest</option>
+                            <option value="price_asc" {{ $selectedSort === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
+                            <option value="price_desc" {{ $selectedSort === 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3">
+                        @forelse($products as $product)
+                            <div class="col-xl-4 col-md-6">
+                                <article class="product-card">
+                                    <div class="product-image-wrap">
+                                        @if($product->images && count($product->images) > 0)
+                                            <img src="{{ asset('storage/' . $product->images[0]) }}" alt="{{ $product->name }}">
+                                        @else
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-image" style="font-size: 2.8rem; color: #9f968a;"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="product-card-body">
+                                        <span class="product-category">{{ $product->category->name }}</span>
+                                        <h3 class="product-name">{{ $product->name }}</h3>
+                                        <p class="product-desc">{{ Str::limit($product->description, 68) }}</p>
+                                        @if($product->size)
+                                            <p class="product-meta"><strong>Size:</strong> {{ $product->size }}</p>
+                                        @endif
+                                        @if($product->color)
+                                            <p class="product-meta"><strong>Color:</strong> {{ $product->color }}</p>
+                                        @endif
+                                        <div class="product-footer">
+                                            <div class="product-price">Nu. {{ number_format($product->rental_price, 0) }}<span style="font-size: 0.95rem; font-weight: 500;">/day</span></div>
+                                            <a href="{{ route('products.show', $product->id) }}" class="btn btn-primary btn-view">View</a>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        @empty
+                            <div class="col-12">
+                                <div class="empty-state">
+                                    <i class="bi bi-info-circle" style="font-size: 2rem; margin-bottom: 0.8rem;"></i>
+                                    <p class="mb-0">No products found. Try adjusting your filters.</p>
+                                </div>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="mt-4">
+                        {{ $products->appends(request()->query())->links() }}
+                    </div>
+                </section>
+            </div>
+        </form>
     </div>
 </div>
 
 @push('scripts')
 <script>
-    function toggleFilter(filterId) {
-        const content = document.getElementById(filterId + '-content');
-        const icon = document.getElementById(filterId + '-icon');
-        
-        if (content.classList.contains('show')) {
-            content.classList.remove('show');
-            icon.classList.remove('bi-chevron-down');
-            icon.classList.add('bi-chevron-right');
-        } else {
-            content.classList.add('show');
-            icon.classList.remove('bi-chevron-right');
-            icon.classList.add('bi-chevron-down');
-        }
-        
-        event.stopPropagation();
-    }
-
     function applyFilter() {
-        const form = document.createElement('form');
-        form.method = 'GET';
-        form.action = '{{ route("products.index") }}';
-        
-        // Collect all checked checkboxes
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-        checkboxes.forEach(checkbox => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = checkbox.name;
-            input.value = checkbox.value;
-            form.appendChild(input);
-        });
-        
-        document.body.appendChild(form);
-        form.submit();
+        const form = document.getElementById('exploreFilterForm');
+        if (form) {
+            form.submit();
+        }
     }
 
-    // Auto-expand category filter if a category is selected
     document.addEventListener('DOMContentLoaded', function() {
-        @if(request()->has('category'))
-            toggleFilter('category');
-        @endif
+        document.querySelectorAll('.filter-section-toggle').forEach(function(toggleButton) {
+            toggleButton.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-filter-target');
+                const iconId = this.getAttribute('data-filter-icon');
+                const content = document.getElementById(targetId);
+                const icon = document.getElementById(iconId);
+
+                if (!content || !icon) {
+                    return;
+                }
+
+                content.classList.toggle('show');
+                icon.classList.toggle('bi-chevron-down', content.classList.contains('show'));
+                icon.classList.toggle('bi-chevron-right', !content.classList.contains('show'));
+            });
+        });
+
+        document.querySelectorAll('.quick-chip[data-filter-type="category"]').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                const value = this.getAttribute('data-filter-value');
+                const input = document.querySelector('input[name="category[]"][value="' + value + '"]');
+                if (!input) {
+                    return;
+                }
+
+                input.checked = !input.checked;
+                applyFilter();
+            });
+        });
+
+        document.querySelectorAll('.quick-chip[data-clear="category"]').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('input[name="category[]"]').forEach(function(input) {
+                    input.checked = false;
+                });
+                applyFilter();
+            });
+        });
     });
 </script>
 @endpush

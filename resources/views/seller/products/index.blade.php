@@ -23,7 +23,7 @@
                         @if($product->images && count($product->images) > 0)
                             <img src="{{ asset('storage/' . $product->images[0]) }}" 
                                  class="card-img-top" alt="{{ $product->name }}" 
-                                 style="height: 200px; object-fit: cover;">
+                                 style="height: 200px; object-fit: contain; object-position: center; background: #f4f1eb;">
                         @else
                             <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
                                  style="height: 200px;">

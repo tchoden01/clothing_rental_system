@@ -2,16 +2,51 @@
 
 @section('title', $product->name)
 
+@push('styles')
+<style>
+    .product-details-page {
+        padding-bottom: 3rem;
+    }
+
+    .product-image-frame {
+        background: #f4f1eb;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .product-image-full {
+        width: 100%;
+        height: 460px;
+        object-fit: contain;
+        object-position: center;
+        background: #f4f1eb;
+    }
+
+    .product-image-empty {
+        height: 460px;
+        border-radius: 10px;
+    }
+
+    @media (max-width: 767px) {
+        .product-image-full,
+        .product-image-empty {
+            height: 320px;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container">
+<div class="container product-details-page">
     <div class="row">
         <div class="col-md-6">
             @if($product->images && count($product->images) > 0)
-                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div id="productCarousel" class="carousel slide product-image-frame" data-bs-ride="carousel">
                     <div class="carousel-inner">
                         @foreach($product->images as $index => $image)
                             <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                                <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="{{ $product->name }}" style="height: 400px; object-fit: cover;">
+                                <img src="{{ asset('storage/' . $image) }}" class="d-block w-100 product-image-full" alt="{{ $product->name }}">
                             </div>
                         @endforeach
                     </div>
@@ -25,7 +60,7 @@
                     @endif
                 </div>
             @else
-                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 400px;">
+                <div class="bg-secondary text-white d-flex align-items-center justify-content-center product-image-empty">
                     <i class="bi bi-image" style="font-size: 5rem;"></i>
                 </div>
             @endif
