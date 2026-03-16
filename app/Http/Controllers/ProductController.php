@@ -24,9 +24,34 @@ class ProductController extends Controller
             });
         }
 
-        // Category filter
-        if ($request->has('category')) {
-            $query->where('category_id', $request->category);
+        // Category filter (supports both single value and category[] input)
+        $categoryFilter = $request->input('category');
+        if (!is_null($categoryFilter)) {
+            $categoryValues = is_array($categoryFilter) ? $categoryFilter : [$categoryFilter];
+            $categoryValues = array_values(array_filter($categoryValues, function ($value) {
+                return $value !== null && $value !== '';
+            }));
+
+            if (!empty($categoryValues)) {
+                $numericCategoryIds = array_values(array_filter($categoryValues, 'is_numeric'));
+                $categoryNames = array_values(array_filter($categoryValues, function ($value) {
+                    return !is_numeric($value);
+                }));
+
+                if (!empty($numericCategoryIds)) {
+                    $query->whereIn('category_id', $numericCategoryIds);
+                }
+
+                if (!empty($categoryNames)) {
+                    $query->whereHas('category', function($q) use ($categoryNames) {
+                        $q->where(function ($nameQuery) use ($categoryNames) {
+                            foreach ($categoryNames as $categoryName) {
+                                $nameQuery->orWhere('name', 'like', '%' . $categoryName . '%');
+                            }
+                        });
+                    });
+                }
+            }
         }
 
         $products = $query->paginate(12);

@@ -37,11 +37,34 @@ class AdminController extends Controller
         
         $totalRevenue = Payment::where('status', 'completed')->sum('amount');
         $totalCommission = Order::where('payment_status', 'paid')->sum('platform_commission');
+        $activeRentals = Order::whereNotIn('status', ['completed', 'cancelled'])->count();
+        $weeklyRevenue = Payment::where('status', 'completed')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->sum('amount');
+
+        $pendingSellerList = Seller::with('user')
+            ->where('is_verified', false)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $pendingProductList = Product::with(['seller.user', 'category'])
+            ->where('is_approved', false)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $recentOrders = Order::with(['user', 'orderItems.product.seller'])
+            ->latest()
+            ->take(6)
+            ->get();
 
         return view('admin.dashboard', compact(
             'totalUsers', 'totalSellers', 'pendingSellers',
             'totalProducts', 'pendingProducts', 'totalOrders',
-            'completedOrders', 'totalRevenue', 'totalCommission'
+            'completedOrders', 'totalRevenue', 'totalCommission',
+            'activeRentals', 'weeklyRevenue',
+            'pendingSellerList', 'pendingProductList', 'recentOrders'
         ));
     }
 

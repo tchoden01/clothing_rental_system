@@ -71,6 +71,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's subscriptions.
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+
+    /**
+     * Get the user's active subscription.
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(UserSubscription::class)
+            ->where('status', 'active')
+            ->with('subscriptionPlan');
+    }
+
+    /**
      * Check if user is admin.
      */
     public function isAdmin()

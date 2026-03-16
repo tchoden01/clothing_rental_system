@@ -8,6 +8,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\OnboardingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +22,19 @@ Route::get('/', [CustomerController::class, 'home'])->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
+
+// Subscription plans (public view)
+Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+
+// Onboarding flow
+Route::get('/get-started', [OnboardingController::class, 'start'])->name('onboarding.start');
+Route::get('/onboarding/create-account', [OnboardingController::class, 'createAccount'])->name('onboarding.create-account');
+Route::post('/onboarding/create-account', [OnboardingController::class, 'storeAccount'])->name('onboarding.store-account');
+Route::get('/onboarding/subscribe', [OnboardingController::class, 'selectSubscription'])->name('onboarding.subscribe')->middleware('auth');
+Route::post('/onboarding/subscribe', [OnboardingController::class, 'storeSubscription'])->name('onboarding.store-subscription')->middleware('auth');
+Route::get('/onboarding/profile', [OnboardingController::class, 'buildProfile'])->name('onboarding.profile')->middleware('auth');
+Route::post('/onboarding/profile', [OnboardingController::class, 'storeProfile'])->name('onboarding.store-profile')->middleware('auth');
+Route::get('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete')->middleware('auth');
 
 // Authentication routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -50,6 +65,10 @@ Route::middleware(['auth'])->group(function () {
     // Orders
     Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    
+    // Subscriptions
+    Route::post('/subscriptions/{plan}/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
+    Route::delete('/subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -74,7 +93,7 @@ Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function (
 });
 
 // Admin routes (authenticated + admin role)
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     
     // Sellers

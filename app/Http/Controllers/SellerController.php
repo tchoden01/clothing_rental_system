@@ -19,7 +19,7 @@ class SellerController extends Controller
     }
 
     // Seller dashboard
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $seller = Auth::user()->seller;
 
@@ -29,15 +29,85 @@ class SellerController extends Controller
 
         $products = Product::where('seller_id', $seller->id)->count();
         $approvedProducts = Product::where('seller_id', $seller->id)->where('is_approved', true)->count();
-        $pendingProducts = Product::where('seller_id', $seller->id)->where('is_approved', false')->count();
+        $pendingProducts = Product::where('seller_id', $seller->id)->where('is_approved', false)->count();
         
         $totalEarnings = OrderItem::where('seller_id', $seller->id)
             ->whereHas('order', function($q) {
                 $q->where('payment_status', 'paid');
             })
             ->sum('seller_earnings');
+        
+        // Items rented out count
+        $itemsRentedOut = OrderItem::where('seller_id', $seller->id)
+            ->whereHas('order', function($q) {
+                $q->where('status', '!=', 'cancelled');
+            })
+            ->count();
+        
+        // Pending orders
+        $pendingOrdersCount = OrderItem::where('seller_id', $seller->id)
+            ->whereHas('order', function($q) {
+                $q->where('status', 'pending');
+            })
+            ->count();
+        
+        // Returns handling
+        $goodReturns = OrderItem::where('seller_id', $seller->id)
+            ->where('return_status', 'returned')
+            ->whereDoesntHave('damageReport')
+            ->count();
+            
+        $damagedReturns = OrderItem::where('seller_id', $seller->id)
+            ->whereHas('damageReport')
+            ->count();
+        
+        // Pending returns
+        $pendingReturns = OrderItem::where('seller_id', $seller->id)
+            ->where('return_status', 'pending')
+            ->with(['product', 'order'])
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        // Platform commission
+        $commission = PlatformSetting::where('key', 'commission_rate')->first();
+        $commissionRate = $commission ? $commission->value : 15;
+        
+        // Monthly earnings
+        $currentMonthEarnings = OrderItem::where('seller_id', $seller->id)
+            ->whereHas('order', function($q) {
+                $q->where('payment_status', 'paid')
+                  ->whereYear('created_at', date('Y'))
+                  ->whereMonth('created_at', date('m'));
+            })
+            ->sum('seller_earnings');
+        
+        // Weekly earnings increase
+        $weeklyEarnings = OrderItem::where('seller_id', $seller->id)
+            ->whereHas('order', function($q) {
+                $q->where('payment_status', 'paid')
+                  ->whereBetween('created_at', [now()->subWeek(), now()]);
+            })
+            ->sum('seller_earnings');
 
-        return view('seller.dashboard', compact('seller', 'products', 'approvedProducts', 'pendingProducts', 'totalEarnings'));
+        $focusSection = $request->query('section');
+
+        return view('seller.dashboard', compact(
+            'seller', 
+            'products', 
+            'approvedProducts', 
+            'pendingProducts', 
+            'totalEarnings',
+            'itemsRentedOut',
+            'pendingOrdersCount',
+            'goodReturns',
+            'damagedReturns',
+            'pendingReturns',
+            'commissionRate',
+            'currentMonthEarnings',
+            'weeklyEarnings',
+            'focusSection'
+        ));
     }
 
     // List seller products
@@ -212,6 +282,10 @@ class SellerController extends Controller
             'condition' => 'required|in:good,damaged',
             'damage_type' => 'required_if:condition,damaged|nullable|in:minor_tear,major_tear,stain,missing_accessory,other',
             'damage_description' => 'required_if:condition,damaged|nullable|string',
+        ]);
+
+        $orderItem->update([
+            'return_status' => 'returned',
         ]);
 
         if ($validated['condition'] === 'damaged') {

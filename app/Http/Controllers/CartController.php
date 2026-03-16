@@ -17,6 +17,23 @@ class CartController extends Controller
     // Display cart items
     public function index()
     {
+        if (!Auth::user()->isCustomer()) {
+            $cartItems = Cart::with(['user', 'product.seller'])
+                ->whereHas('user', function ($query) {
+                    $query->where('role', 'customer');
+                })
+                ->latest()
+                ->get();
+
+            return view('cart.index', [
+                'cartItems' => $cartItems,
+                'total' => $cartItems->sum(function ($item) {
+                    return $item->product->rental_price * $item->quantity;
+                }),
+                'isReadOnly' => true,
+            ]);
+        }
+
         $cartItems = Cart::with('product.seller')
             ->where('user_id', Auth::id())
             ->get();
@@ -25,12 +42,20 @@ class CartController extends Controller
             return $item->product->rental_price * $item->quantity;
         });
 
-        return view('cart.index', compact('cartItems', 'total'));
+        return view('cart.index', [
+            'cartItems' => $cartItems,
+            'total' => $total,
+            'isReadOnly' => false,
+        ]);
     }
 
     // Add product to cart
     public function add(Request $request)
     {
+        if (!Auth::user()->isCustomer()) {
+            return redirect()->route('cart.index')->with('error', 'Only customers can add items to cart.');
+        }
+
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
@@ -69,6 +94,10 @@ class CartController extends Controller
     // Update cart item quantity
     public function update(Request $request, $id)
     {
+        if (!Auth::user()->isCustomer()) {
+            return redirect()->route('cart.index')->with('error', 'Only customers can modify cart items.');
+        }
+
         $validated = $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
@@ -88,6 +117,10 @@ class CartController extends Controller
     // Remove item from cart
     public function remove($id)
     {
+        if (!Auth::user()->isCustomer()) {
+            return redirect()->route('cart.index')->with('error', 'Only customers can remove cart items.');
+        }
+
         $cartItem = Cart::where('user_id', Auth::id())->findOrFail($id);
         $cartItem->delete();
 
@@ -97,6 +130,10 @@ class CartController extends Controller
     // Clear all cart items
     public function clear()
     {
+        if (!Auth::user()->isCustomer()) {
+            return redirect()->route('cart.index')->with('error', 'Only customers can clear cart items.');
+        }
+
         Cart::where('user_id', Auth::id())->delete();
 
         return back()->with('success', 'Cart cleared!');

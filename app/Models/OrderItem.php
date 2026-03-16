@@ -18,6 +18,7 @@ class OrderItem extends Model
         'seller_earnings',
         'rental_start_date',
         'rental_end_date',
+        'return_status',
     ];
 
     protected $casts = [
@@ -49,5 +50,14 @@ class OrderItem extends Model
     public function seller()
     {
         return $this->belongsTo(Seller::class);
+    }
+
+    /**
+     * Get the damage report for this specific order item.
+     */
+    public function damageReport()
+    {
+        return $this->hasOne(DamageReport::class, 'product_id', 'product_id')
+            ->whereColumn('damage_reports.order_id', 'order_items.order_id');
     }
 }

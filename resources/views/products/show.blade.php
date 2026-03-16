@@ -35,7 +35,7 @@
             <h2>{{ $product->name }}</h2>
             <span class="badge bg-primary mb-2">{{ $product->category->name }}</span>
             
-            <h3 class="text-primary mt-3">Rs. {{ number_format($product->rental_price, 2) }} / day</h3>
+            <h3 class="text-primary mt-3">Nu. {{ number_format($product->rental_price, 2) }} / day</h3>
             
             <hr>
             
@@ -93,22 +93,31 @@
             </div>
 
             @auth
-                @if($product->quantity > 0)
-                    <form action="{{ route('cart.add') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="{{ $product->quantity }}">
-                        </div>
+                @if(Auth::user()->isCustomer())
+                    @if($product->quantity > 0)
+                        <form action="{{ route('cart.add') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="{{ $product->quantity }}">
+                            </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg w-100">
-                            <i class="bi bi-cart-plus"></i> Add to Cart
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            </button>
+                        </form>
+                    @else
+                        <button class="btn btn-secondary btn-lg w-100" disabled>Out of Stock</button>
+                    @endif
                 @else
-                    <button class="btn btn-secondary btn-lg w-100" disabled>Out of Stock</button>
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> Admin and seller accounts cannot add items to cart.
+                    </div>
+                    <a href="{{ route('cart.index') }}" class="btn btn-outline-primary btn-lg w-100">
+                        <i class="bi bi-cart"></i> View Cart Monitor
+                    </a>
                 @endif
             @else
                 <a href="{{ route('login') }}" class="btn btn-primary btn-lg w-100">
