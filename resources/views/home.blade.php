@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'DrukWear - Rent Traditional Bhutanese Attire')
+@section('title', 'Rentique - Rent Traditional Bhutanese Attire')
 
 @push('styles')
 <style>
@@ -173,7 +173,7 @@
     }
     
     .work-step-link:hover .work-icon {
-        background-color: #2c5f5f;
+        background-color: #660018;
         color: white;
     }
     
@@ -185,6 +185,7 @@
     .work-icon {
         transition: all 0.3s ease;
     }
+
 </style>
 @endpush
 
@@ -226,9 +227,6 @@
         <div class="row w-100">
             <div class="col-lg-6">
                 <div class="hero-content">
-                    <div class="hero-logo">
-                        <span>Druk</span><span>Wear</span>
-                    </div>
                     <h1>Rent Authentic<br>Bhutanese Attire<br>for Every <span>Special Occasion</span></h1>
                     <p>Affordable clothes and bags for weddings, festivals, and special events.</p>
                     <div class="hero-buttons">
@@ -351,7 +349,7 @@
                 </div>
                 <div class="col-md-6 col-lg-3 mb-4">
                     <div class="card product-card">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 300px; background: linear-gradient(135deg, #2C5F5F 0%, #FFD700 100%);">
+                        <div class="d-flex align-items-center justify-content-center" style="height: 300px; background: linear-gradient(135deg, #800020 0%, #A0003A 100%);">
                             <i class="bi bi-star" style="font-size: 3rem; color: white;"></i>
                         </div>
                         <div class="card-body">
@@ -370,7 +368,7 @@
     </div>
 </section>
 
-<!-- Why Choose DrukWear Section -->
+<!-- Why Choose Rentique Section -->
 <section class="why-choose" id="about">
     <div class="container">
         <div class="row align-items-center">
@@ -404,11 +402,11 @@
                             </div>
                         </div>
                         <p class="testimonial-text">
-                            "DrukWear made it easy for me to rent a Gho for my cousin's wedding."
+                            "Rentique made it easy for me to rent a Gho for my cousin's wedding."
                         </p>
                         <div class="testimonial-meta">
                             <span><i class="bi bi-eye"></i> 1975-421-7898</span>
-                            <span><i class="bi bi-info-circle"></i> info@drukwear.XXXX</span>
+                            <span><i class="bi bi-info-circle"></i> info@rentique.XXXX</span>
                         </div>
                     </div>
                     
@@ -526,7 +524,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-4">
                                 <div class="d-flex align-items-start">
-                                    <i class="bi bi-telephone" style="font-size: 1.5rem; color: #2c5f5f; margin-right: 1rem;"></i>
+                                    <i class="bi bi-telephone" style="font-size: 1.5rem; color: #A0003A; margin-right: 1rem;"></i>
                                     <div>
                                         <h5 style="font-weight: 600; margin-bottom: 0.5rem;">Phone</h5>
                                         <p style="color: #666; margin: 0;">+975-443-7890</p>
@@ -536,17 +534,17 @@
                             </div>
                             <div class="col-md-6 mb-4">
                                 <div class="d-flex align-items-start">
-                                    <i class="bi bi-envelope" style="font-size: 1.5rem; color: #2c5f5f; margin-right: 1rem;"></i>
+                                    <i class="bi bi-envelope" style="font-size: 1.5rem; color: #A0003A; margin-right: 1rem;"></i>
                                     <div>
                                         <h5 style="font-weight: 600; margin-bottom: 0.5rem;">Email</h5>
-                                        <p style="color: #666; margin: 0;">info@drukwear.bt</p>
-                                        <p style="color: #666; margin: 0;">support@drukwear.bt</p>
+                                        <p style="color: #666; margin: 0;">info@rentique.bt</p>
+                                        <p style="color: #666; margin: 0;">support@rentique.bt</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <div class="d-flex align-items-start">
-                                    <i class="bi bi-geo-alt" style="font-size: 1.5rem; color: #2c5f5f; margin-right: 1rem;"></i>
+                                    <i class="bi bi-geo-alt" style="font-size: 1.5rem; color: #A0003A; margin-right: 1rem;"></i>
                                     <div>
                                         <h5 style="font-weight: 600; margin-bottom: 0.5rem;">Address</h5>
                                         <p style="color: #666; margin: 0;">Thimphu, Bhutan</p>
@@ -555,7 +553,7 @@
                             </div>
                             <div class="col-md-6 mb-4">
                                 <div class="d-flex align-items-start">
-                                    <i class="bi bi-clock" style="font-size: 1.5rem; color: #2c5f5f; margin-right: 1rem;"></i>
+                                    <i class="bi bi-clock" style="font-size: 1.5rem; color: #A0003A; margin-right: 1rem;"></i>
                                     <div>
                                         <h5 style="font-weight: 600; margin-bottom: 0.5rem;">Hours</h5>
                                         <p style="color: #666; margin: 0;">Mon - Sat: 9:00 AM - 6:00 PM</p>
@@ -565,7 +563,7 @@
                             </div>
                         </div>
                         <div class="text-center mt-4">
-                            <a href="{{ route('products.index') }}" class="btn btn-lg" style="background-color: #2c5f5f; color: white; padding: 0.8rem 2.5rem; border-radius: 5px; text-decoration: none;">
+                            <a href="{{ route('products.index') }}" class="btn btn-lg" style="background-color: #800020; color: #FFFFFF; padding: 0.8rem 2.5rem; border-radius: 5px; text-decoration: none;">
                                 Start Browsing <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>

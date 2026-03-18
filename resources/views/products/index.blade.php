@@ -13,6 +13,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.55rem;
+        justify-content: center;
         margin: 0.35rem 0 1rem;
     }
 
@@ -239,6 +240,10 @@
 
         .filter-sidebar {
             position: static;
+        }
+
+        .chip-row {
+            justify-content: flex-start;
         }
     }
 </style>

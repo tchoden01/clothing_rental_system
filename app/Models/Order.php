@@ -46,6 +46,14 @@ class Order extends Model
     }
 
     /**
+     * Get pickup records for this order.
+     */
+    public function pickups()
+    {
+        return $this->hasMany(Pickup::class);
+    }
+
+    /**
      * Get the payment for the order.
      */
     public function payment()

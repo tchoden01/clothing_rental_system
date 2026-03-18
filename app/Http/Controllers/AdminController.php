@@ -11,8 +11,10 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Category;
 use App\Models\PlatformSetting;
+use App\Models\Pickup;
 use App\Notifications\AdminDecisionNotification;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -243,7 +245,50 @@ class AdminController extends Controller
         $order = Order::with(['user', 'orderItems.product.seller', 'payment'])
             ->findOrFail($id);
 
-        return view('admin.orders.show', compact('order'));
+        $commissionRate = (float) PlatformSetting::get('commission_rate', 15);
+
+        $orderItemsBreakdown = $order->orderItems->map(function ($item) use ($order, $commissionRate) {
+            $startDateRaw = $item->rental_start_date ?: $order->rental_start_date;
+            $endDateRaw = $item->rental_end_date ?: $order->rental_end_date;
+
+            $rentalDays = 1;
+            if ($startDateRaw && $endDateRaw) {
+                $rentalDays = max(Carbon::parse($startDateRaw)->diffInDays(Carbon::parse($endDateRaw)), 1);
+            }
+
+            $pricePerDay = (float) ($item->rental_price ?? optional($item->product)->rental_price ?? 0);
+            $pricePerDay = max($pricePerDay, 0);
+
+            $quantity = max((int) $item->quantity, 0);
+            $itemSubtotal = $pricePerDay * $rentalDays * $quantity;
+            $itemCommission = $itemSubtotal * ($commissionRate / 100);
+            $itemSellerEarnings = $itemSubtotal - $itemCommission;
+
+            $item->calc_rental_days = $rentalDays;
+            $item->calc_start_date = $startDateRaw;
+            $item->calc_end_date = $endDateRaw;
+            $item->calc_price_per_day = $pricePerDay;
+            $item->calc_subtotal = max($itemSubtotal, 0);
+            $item->calc_platform_commission = max($itemCommission, 0);
+            $item->calc_seller_earnings = max($itemSellerEarnings, 0);
+
+            return $item;
+        });
+
+        $orderSubtotal = (float) $orderItemsBreakdown->sum('calc_subtotal');
+        $orderPlatformCommission = (float) $orderItemsBreakdown->sum('calc_platform_commission');
+        $orderSellerEarnings = (float) $orderItemsBreakdown->sum('calc_seller_earnings');
+        $orderTotalPaid = $orderSubtotal;
+
+        return view('admin.orders.show', compact(
+            'order',
+            'commissionRate',
+            'orderItemsBreakdown',
+            'orderSubtotal',
+            'orderPlatformCommission',
+            'orderSellerEarnings',
+            'orderTotalPaid'
+        ));
     }
 
     // Update order status
@@ -253,11 +298,71 @@ class AdminController extends Controller
             'status' => 'required|in:pending,confirmed,collected_from_seller,picked_up_by_customer,in_use,returned_by_customer,returned_to_seller,completed,cancelled',
         ]);
 
-        $order = Order::findOrFail($id);
+        $order = Order::with('orderItems.product')->findOrFail($id);
         $order->status = $validated['status'];
         $order->save();
 
+        // Create pickup records when the order enters logistics lifecycle.
+        if (in_array($order->status, [
+            'confirmed',
+            'collected_from_seller',
+            'picked_up_by_customer',
+            'in_use',
+            'returned_by_customer',
+            'returned_to_seller',
+            'completed',
+        ], true)) {
+            Pickup::ensureForOrder($order);
+        }
+
         return back()->with('success', 'Order status updated successfully!');
+    }
+
+    // Pickup management list
+    public function pickups()
+    {
+        $logisticsStatuses = [
+            'confirmed',
+            'collected_from_seller',
+            'picked_up_by_customer',
+            'in_use',
+            'returned_by_customer',
+            'returned_to_seller',
+            'completed',
+        ];
+
+        // Backfill pickup records for confirmed/in-progress orders.
+        Order::with('orderItems.product')
+            ->whereIn('status', $logisticsStatuses)
+            ->get()
+            ->each(function ($order) {
+                Pickup::ensureForOrder($order);
+            });
+
+        $pickups = Pickup::with(['order', 'orderItem.product', 'seller.user', 'customer'])
+            ->orderBy('pickup_date')
+            ->orderByDesc('id')
+            ->paginate(20);
+
+        $statusLabels = Pickup::statusLabels();
+
+        return view('admin.pickups.index', compact('pickups', 'statusLabels'));
+    }
+
+    // Update pickup status
+    public function updatePickupStatus(Request $request, $id)
+    {
+        $allowedStatuses = array_keys(Pickup::statusLabels());
+
+        $validated = $request->validate([
+            'pickup_status' => 'required|in:' . implode(',', $allowedStatuses),
+        ]);
+
+        $pickup = Pickup::findOrFail($id);
+        $pickup->pickup_status = $validated['pickup_status'];
+        $pickup->save();
+
+        return back()->with('success', 'Pickup status updated successfully.');
     }
 
     // Notifications center for pending admin actions

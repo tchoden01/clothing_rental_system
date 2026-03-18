@@ -53,6 +53,14 @@ class OrderItem extends Model
     }
 
     /**
+     * Get pickup record for this order item.
+     */
+    public function pickup()
+    {
+        return $this->hasOne(Pickup::class);
+    }
+
+    /**
      * Get the damage report for this specific order item.
      */
     public function damageReport()

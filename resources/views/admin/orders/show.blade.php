@@ -23,32 +23,38 @@
                     <h5 class="mb-0">Order Items</h5>
                 </div>
                 <div class="card-body">
-                    @foreach($order->orderItems as $item)
+                    @foreach($orderItemsBreakdown as $item)
                         <div class="row mb-3 pb-3 border-bottom">
                             <div class="col-md-2">
-                                @if($item->product->images && count($item->product->images) > 0)
+                                @if($item->product && $item->product->images && count($item->product->images) > 0)
                                     <img src="{{ asset('storage/' . $item->product->images[0]) }}" 
                                          class="img-fluid" alt="{{ $item->product->name }}">
                                 @endif
                             </div>
                             <div class="col-md-10">
-                                <h6>{{ $item->product->name }}</h6>
+                                <h6>{{ optional($item->product)->name ?? 'Item' }}</h6>
                                 <p class="text-muted mb-1">
-                                    <small>Seller: {{ $item->product->seller->user->name }}</small>
+                                    <small>Seller: {{ optional(optional(optional($item->product)->seller)->user)->name ?? 'N/A' }}</small>
                                 </p>
                                 <p class="mb-1">
                                     <strong>Rental Period:</strong> 
-                                    {{ \Carbon\Carbon::parse($item->rental_start_date)->format('d M Y') }} - 
-                                    {{ \Carbon\Carbon::parse($item->rental_end_date)->format('d M Y') }}
+                                    @if($item->calc_start_date && $item->calc_end_date)
+                                        {{ \Carbon\Carbon::parse($item->calc_start_date)->format('d M Y') }} - 
+                                        {{ \Carbon\Carbon::parse($item->calc_end_date)->format('d M Y') }}
+                                    @else
+                                        N/A
+                                    @endif
                                 </p>
                                 <p class="mb-1">
-                                    <strong>Quantity:</strong> {{ $item->quantity }} | 
-                                    <strong>Price:</strong> Nu. {{ number_format($item->price, 2) }}
+                                    <strong>Quantity:</strong> {{ $item->quantity }} |
+                                    <strong>Days:</strong> {{ $item->calc_rental_days }} |
+                                    <strong>Price/Day:</strong> Nu. {{ number_format($item->calc_price_per_day, 2) }}
                                 </p>
+                                <p class="mb-1"><strong>Subtotal:</strong> Nu. {{ number_format($item->calc_subtotal, 2) }}</p>
                                 <p class="mb-0">
                                     <small class="text-muted">
-                                        Platform Commission: Nu. {{ number_format($item->platform_commission, 2) }} | 
-                                        Seller Earnings: Nu. {{ number_format($item->seller_earnings, 2) }}
+                                        Platform Commission ({{ number_format($commissionRate, 2) }}%): Nu. {{ number_format($item->calc_platform_commission, 2) }} |
+                                        Seller Earnings: Nu. {{ number_format($item->calc_seller_earnings, 2) }}
                                     </small>
                                 </p>
                             </div>
@@ -60,15 +66,19 @@
                             <table class="table">
                                 <tr>
                                     <td><strong>Subtotal:</strong></td>
-                                    <td class="text-end">Nu. {{ number_format($order->total_amount - $order->platform_commission, 2) }}</td>
+                                    <td class="text-end">Nu. {{ number_format($orderSubtotal, 2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Platform Commission:</strong></td>
-                                    <td class="text-end">Nu. {{ number_format($order->platform_commission, 2) }}</td>
+                                    <td><strong>Platform Commission ({{ number_format($commissionRate, 2) }}%):</strong></td>
+                                    <td class="text-end">Nu. {{ number_format($orderPlatformCommission, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Seller Earnings:</strong></td>
+                                    <td class="text-end">Nu. {{ number_format($orderSellerEarnings, 2) }}</td>
                                 </tr>
                                 <tr class="table-active">
-                                    <td><strong>Total Amount:</strong></td>
-                                    <td class="text-end"><strong>Nu. {{ number_format($order->total_amount, 2) }}</strong></td>
+                                    <td><strong>Total Paid by Customer:</strong></td>
+                                    <td class="text-end"><strong>Nu. {{ number_format($orderTotalPaid, 2) }}</strong></td>
                                 </tr>
                             </table>
                         </div>

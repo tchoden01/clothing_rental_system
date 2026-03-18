@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Clothing Rental System')</title>
+    <title>@yield('title', 'Rentique')</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            color: #333333;
             line-height: 1.6;
             min-height: 100vh;
             display: flex;
@@ -30,73 +30,376 @@
             flex: 1;
         }
         
-        /* Navbar Styles */
-        .navbar {
-            background-color: #fff !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            padding: 1rem 0;
+        /* Header Styles */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1100;
+            background: #fff;
+            border-bottom: 1px solid #ded8cc;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
-        
-        .navbar .container {
-            display: flex;
-            align-items: center;
+
+        .site-utility {
+            border-bottom: 1px solid #ece6d9;
+            background: #fff;
         }
-        
-        .navbar-brand {
-            display: flex;
+
+        .site-top-inner {
+            min-height: 68px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            font-size: 1.5rem;
+            gap: 1rem;
+            width: 100%;
+            padding: 0 1rem;
+        }
+
+        .top-wordmark {
+            text-decoration: none;
+            font-size: 2rem;
             font-weight: 700;
-            color: #d97d3f !important;
-            text-decoration: none;
-            margin-right: 0;
-        }
-        
-        .navbar-brand span:first-child {
-            color: #d97d3f;
-        }
-        
-        .navbar-brand span:last-child {
-            color: #333;
-        }
-        
-        .nav-center {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex: 1;
-            gap: 2.5rem;
-            margin: 0 2rem;
-        }
-        
-        .nav-link-main {
-            color: #333 !important;
-            padding: 0.5rem 0;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: color 0.3s ease;
-            border-bottom: 2px solid transparent;
+            letter-spacing: 0.22em;
+            color: #23201d;
+            text-transform: uppercase;
+            line-height: 1;
             white-space: nowrap;
         }
-        
-        .nav-link-main:hover {
-            color: #d97d3f !important;
-            border-bottom: 2px solid #d97d3f;
+
+        .top-wordmark .logo-q {
+            color: #800020;
         }
-        
-        .nav-right {
+
+        .utility-left {
+            justify-self: start;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            gap: 0.95rem;
+            min-width: 0;
         }
-        
+
+        .utility-right {
+            justify-self: end;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            white-space: nowrap;
+        }
+
+        .main-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 3.35rem;
+            justify-content: center;
+            min-width: 0;
+            overflow: visible;
+            min-height: 54px;
+            padding: 0.2rem 0;
+            width: 100%;
+            max-width: 1220px;
+        }
+
+        .main-nav-links::-webkit-scrollbar {
+            height: 0;
+        }
+
+        .main-nav-link {
+            color: #211f1c;
+            text-decoration: none;
+            font-size: 1.04rem;
+            font-weight: 500;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            padding: 0.42rem 0.02rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .main-nav-links .dropdown {
+            position: relative;
+        }
+
+        .main-nav-links .dropdown-toggle::after {
+            margin-left: 0.35rem;
+            vertical-align: 0.1em;
+            border-top-width: 0.35em;
+            border-right-width: 0.3em;
+            border-left-width: 0.3em;
+        }
+
+        .main-nav-dropdown-menu {
+            border: 1px solid #e1d9ca;
+            border-radius: 10px;
+            padding: 0.45rem;
+            min-width: 230px;
+            max-height: 320px;
+            overflow-y: auto;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+            margin-top: 0.4rem;
+        }
+
+        .main-nav-dropdown-menu .dropdown-item {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #2a2621;
+            border-radius: 7px;
+            padding: 0.5rem 0.7rem;
+        }
+
+        .main-nav-dropdown-menu .dropdown-item:hover,
+        .main-nav-dropdown-menu .dropdown-item:focus {
+            background-color: #f4eee4;
+            color: #800020;
+        }
+
+        .main-nav-link:hover {
+            color: #800020;
+            border-bottom-color: #A0003A;
+        }
+
+        .main-nav-link.is-accent {
+            color: #800020;
+        }
+
+        .site-category-row {
+            background: #fff;
+            border-bottom: 1px solid #ece6d9;
+        }
+
+        .site-bottom-inner {
+            width: 100%;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .icon-action {
+            position: relative;
+            color: #201d1a;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem;
+            min-width: 34px;
+            font-size: 1rem;
+            line-height: 1.1;
+            padding: 0.2rem 0.35rem;
+        }
+
+        .icon-action i {
+            font-size: 1.1rem;
+        }
+
+        .icon-action:hover {
+            color: #A0003A;
+        }
+
+        .icon-badge {
+            position: absolute;
+            top: -3px;
+            right: 3px;
+            min-width: 17px;
+            height: 17px;
+            border-radius: 999px;
+            background: #A0003A;
+            color: #fff;
+            border: 2px solid #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.66rem;
+            font-weight: 700;
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .utility-link {
+            color: #1f1c18;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.01em;
+        }
+
+        .utility-link:hover {
+            color: #800020;
+        }
+
+        .utility-divider {
+            color: #b2a898;
+            font-weight: 300;
+        }
+
+        .utility-search-form {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #d8d0c2;
+            background: #efefef;
+            border-radius: 12px;
+            height: 40px;
+            min-width: 290px;
+            overflow: hidden;
+        }
+
+        .utility-search-icon {
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-right: 1px solid #d3cab9;
+            background: transparent;
+            color: #1d1a16;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            padding: 0;
+        }
+
+        .utility-search-input {
+            border: 0;
+            background: transparent;
+            padding: 0 0.78rem;
+            height: 100%;
+            color: #222;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 310px;
+            outline: none;
+        }
+
+        .utility-search-input::placeholder {
+            color: #1f1c18;
+            opacity: 0.9;
+        }
+
+        .utility-search-form:focus-within {
+            border-color: #800020;
+            box-shadow: 0 0 0 2px rgba(128, 0, 32, 0.12);
+        }
+
+        .rentique-brand {
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            min-width: 220px;
+            gap: 0.04rem;
+        }
+
+        .rentique-logo-hanger {
+            width: 78px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rentique-logo-text {
+            font-size: 2rem;
+            letter-spacing: 0.2em;
+            font-weight: 800;
+            color: #262626;
+            text-transform: uppercase;
+        }
+
+        .rentique-logo-text .logo-q {
+            color: #800020;
+        }
+
+        .rentique-logo-swoosh {
+            width: 112px;
+            height: 12px;
+            border-top: 2px solid #c58a3a;
+            border-radius: 100%;
+            margin-top: 0.08rem;
+        }
+
+        .rentique-brand:hover {
+            opacity: 0.96;
+        }
+
+        .utility-pill {
+            color: #fff;
+            background: #800020;
+            border-radius: 999px;
+            padding: 0.45rem 1rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1;
+            border: 1px solid #800020;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .utility-pill:hover {
+            color: #fff;
+            background: #660018;
+            border-color: #660018;
+        }
+
+        .utility-outline {
+            color: #3a342c;
+            background: #fff;
+            border-radius: 999px;
+            padding: 0.45rem 1rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1;
+            border: 1px solid #d6ccba;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .utility-outline:hover {
+            color: #fff;
+            border-color: #800020;
+            background: #800020;
+        }
+
+        .site-category-row {
+            background: #fff;
+        }
+
+        .category-links,
+        .mobile-main-links {
+            display: flex;
+            align-items: center;
+            gap: 1.9rem;
+            min-height: 50px;
+        }
+
+        .category-link {
+            color: #161310;
+            text-decoration: none;
+            font-size: 1.02rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .category-link:hover {
+            color: #800020;
+        }
+
+        .category-link.is-accent {
+            color: #800020;
+        }
+
         .btn-login {
-            color: #333;
+            color: #333333;
             background-color: #fff;
             padding: 0.5rem 1.2rem;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 999px;
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 500;
@@ -119,7 +422,7 @@
             height: 18px;
             padding: 0 5px;
             border-radius: 999px;
-            background-color: #d82323;
+            background-color: #A0003A;
             color: #fff;
             font-size: 0.7rem;
             font-weight: 700;
@@ -131,15 +434,16 @@
         }
         
         .btn-login:hover {
-            background-color: #f8f8f8;
-            color: #333;
+            background-color: #800020;
+            border-color: #800020;
+            color: #fff;
         }
         
         .btn-signup {
-            background-color: #2c5f5f;
+            background-color: #800020;
             color: white !important;
-            padding: 0.5rem 1.5rem;
-            border-radius: 5px;
+            padding: 0.5rem 1.3rem;
+            border-radius: 999px;
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 600;
@@ -147,9 +451,17 @@
             transition: all 0.3s ease;
             white-space: nowrap;
         }
-        
+
         .btn-signup:hover {
-            background-color: #234848;
+            background-color: #660018;
+        }
+
+        .btn:hover,
+        button.btn:hover,
+        a.btn:hover {
+            background-color: #660018 !important;
+            border-color: #660018 !important;
+            color: #fff !important;
         }
         
         /* Bootstrap Dropdown Overrides */
@@ -165,13 +477,13 @@
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
             font-weight: 500;
-            color: #333;
+            color: #333333;
             transition: all 0.2s ease;
         }
         
         .dropdown-item:hover {
-            background-color: #f8f8f8;
-            color: #d97d3f;
+            background-color: #F5F5F5;
+            color: #800020;
         }
         
         .dropdown-item-text {
@@ -191,13 +503,13 @@
         .back-arrow-btn {
             position: fixed;
             left: 1rem;
-            top: 5.4rem;
+            top: 7.35rem;
             width: 42px;
             height: 42px;
             border: 1px solid rgba(0, 0, 0, 0.12);
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.96);
-            color: #2c5f5f;
+            color: #800020;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -209,17 +521,9 @@
         .back-arrow-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
-            color: #234848;
+            color: #660018;
         }
 
-        @media (max-width: 768px) {
-            .back-arrow-btn {
-                top: 4.9rem;
-                left: 0.75rem;
-                width: 38px;
-                height: 38px;
-            }
-        }
         
         /* Hero Section */
         .hero-section {
@@ -288,12 +592,13 @@
         }
         
         .btn-browse:hover {
-            background-color: white;
-            color: #333;
+            background-color: #660018;
+            border-color: #660018;
+            color: #fff;
         }
         
         .btn-rent {
-            background-color: #2c5f5f;
+            background-color: #800020;
             color: white;
             padding: 0.8rem 2rem;
             border: none;
@@ -307,14 +612,14 @@
         }
         
         .btn-rent:hover {
-            background-color: #234848;
+            background-color: #660018;
             color: white;
         }
         
         /* How It Works Section */
         .how-it-works {
             padding: 4rem 0;
-            background-color: #f9f9f9;
+            background-color: #F5F5F5;
         }
         
         .section-title {
@@ -322,7 +627,7 @@
             font-size: 2.5rem;
             font-weight: 600;
             margin-bottom: 3rem;
-            color: #333;
+            color: #333333;
         }
         
         .work-step {
@@ -333,7 +638,7 @@
             width: 80px;
             height: 80px;
             margin: 0 auto 1.5rem;
-            background-color: #f0f0f0;
+            background-color: #F5F5F5;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -345,7 +650,7 @@
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 0.8rem;
-            color: #333;
+            color: #333333;
         }
         
         .work-step p {
@@ -387,7 +692,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: #333;
+            color: #333333;
         }
         
         .product-card .price {
@@ -396,7 +701,7 @@
         }
         
         .btn-view-all {
-            background-color: #2c5f5f;
+            background-color: #800020;
             color: white;
             padding: 0.8rem 2.5rem;
             border-radius: 5px;
@@ -409,14 +714,14 @@
         }
         
         .btn-view-all:hover {
-            background-color: #234848;
+            background-color: #660018;
             color: white;
         }
         
         /* Why Choose Section */
         .why-choose {
             padding: 4rem 0;
-            background: linear-gradient(135deg, #2c5f5f 0%, #4a8080 100%);
+            background: linear-gradient(135deg, #800020 0%, #660018 100%);
             color: white;
             position: relative;
         }
@@ -449,7 +754,7 @@
         
         .testimonial-box {
             background-color: white;
-            color: #333;
+            color: #333333;
             padding: 2rem;
             border-radius: 8px;
             margin-top: 2rem;
@@ -471,7 +776,7 @@
         
         .testimonial-name {
             font-weight: 600;
-            color: #333;
+            color: #333333;
         }
         
         .testimonial-location {
@@ -496,7 +801,7 @@
         
         .btn-browse-attire {
             background-color: white;
-            color: #2c5f5f;
+            color: #800020;
             padding: 0.8rem 2rem;
             border-radius: 5px;
             text-decoration: none;
@@ -509,8 +814,8 @@
         }
         
         .btn-browse-attire:hover {
-            background-color: #f8f8f8;
-            color: #2c5f5f;
+            background-color: #660018;
+            color: #FFFFFF;
         }
         
         .why-choose-image {
@@ -523,7 +828,7 @@
         
         /* Footer */
         footer {
-            background-color: #2c5f5f;
+            background-color: #800020;
             color: white;
             padding: 3rem 0 1.5rem;
         }
@@ -541,7 +846,7 @@
         }
         
         .footer-logo span:first-child {
-            color: #d97d3f;
+            color: #A0003A;
         }
         
         .social-links {
@@ -660,29 +965,76 @@
             margin: 0.5rem 1.2rem;
         }
         
+        @media (max-width: 991px) {
+            .site-top-inner {
+                grid-template-columns: 1fr;
+                justify-items: stretch;
+                gap: 0.55rem;
+                padding: 0.65rem 1rem;
+            }
+
+            .utility-left,
+            .utility-right {
+                justify-content: center;
+            }
+
+            .top-wordmark {
+                justify-content: center;
+                text-align: center;
+                font-size: 1.5rem;
+                letter-spacing: 0.16em;
+            }
+
+            .site-bottom-inner {
+                padding: 0 0.75rem;
+            }
+
+            .main-nav-links {
+                justify-content: flex-start;
+                gap: 1.3rem;
+                overflow-x: auto;
+                overflow-y: visible;
+                padding-bottom: 0.2rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .hero-content h1 {
                 font-size: 2rem;
             }
-            .nav-center {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
             .hero-buttons {
                 flex-direction: column;
             }
-            .nav-dropdown-menu {
-                position: static;
-                transform: none;
-                box-shadow: none;
-                display: none;
-                margin-top: 0.5rem;
-                padding: 0.5rem 0;
+
+            .utility-pill,
+            .utility-outline,
+            .btn-login,
+            .btn-signup {
+                padding: 0.4rem 0.72rem;
+                font-size: 0.82rem;
             }
-            .nav-dropdown:hover .nav-dropdown-menu {
-                display: block;
-                opacity: 1;
-                visibility: visible;
+
+            .utility-search-form {
+                min-width: 0;
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .utility-search-input {
+                width: 100%;
+            }
+
+            .main-nav-link {
+                font-size: 0.92rem;
+            }
+
+            .icon-action {
+                min-width: 34px;
+                font-size: 0.95rem;
+            }
+
+            .back-arrow-btn {
+                top: 9.9rem;
             }
         }
     </style>
@@ -690,157 +1042,106 @@
     @stack('styles')
 </head>
 <body>
-    <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrHome()">
-        <i class="bi bi-arrow-left"></i>
-    </button>
+    @unless(request()->routeIs('home'))
+        <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrHome()">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+    @endunless
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container">
-            <!-- Brand Logo -->
-            <a class="navbar-brand" href="{{ route('home') }}">
-                <span>Druk</span><span>Wear</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Center Navigation -->
-                <div class="nav-center d-none d-lg-flex">
-                    <a href="{{ route('home') }}" class="nav-link-main">Home</a>
-                    
-                    <!-- Browse Dropdown -->
-                    <div class="nav-dropdown">
-                        <a href="{{ route('products.index') }}" class="nav-link-main">Browse</a>
-                        <div class="nav-dropdown-menu">
-                            <a href="{{ route('products.index', ['category' => 'Gho']) }}" class="nav-dropdown-item">
-                                <i class="bi bi-person"></i>
-                                <span class="dropdown-title">Men's Gho</span>
-                            </a>
-                            <a href="{{ route('products.index', ['category' => 'Kira']) }}" class="nav-dropdown-item">
-                                <i class="bi bi-person-dress"></i>
-                                <span class="dropdown-title">Women's Kira</span>
-                            </a>
-                            <a href="{{ route('products.index', ['category' => 'Ceremonial']) }}" class="nav-dropdown-item">
-                                <i class="bi bi-star"></i>
-                                <span class="dropdown-title">Ceremonial Wear</span>
-                            </a>
-                            <a href="{{ route('products.index', ['category' => 'Wedding']) }}" class="nav-dropdown-item">
-                                <i class="bi bi-heart"></i>
-                                <span class="dropdown-title">Wedding Attire</span>
-                            </a>
-                            <div class="nav-dropdown-divider"></div>
-                            <a href="{{ route('products.index') }}" class="nav-dropdown-item">
-                                <i class="bi bi-grid"></i>
-                                <span class="dropdown-title">All Attire</span>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- How it Works Dropdown -->
-                    <div class="nav-dropdown">
-                        <a href="#how-it-works" class="nav-link-main">How it Works</a>
-                        <div class="nav-dropdown-menu">
-                            <a href="{{ route('products.index') }}" class="nav-dropdown-item">
-                                <i class="bi bi-search"></i>
-                                <div class="dropdown-text">
-                                    <span class="dropdown-title">Browse Attire</span>
-                                    <span class="dropdown-subtitle">Explore our collection</span>
-                                </div>
-                            </a>
-                            <a href="{{ route('products.index') }}" class="nav-dropdown-item">
-                                <i class="bi bi-calendar-check"></i>
-                                <div class="dropdown-text">
-                                    <span class="dropdown-title">Rent With Ease</span>
-                                    <span class="dropdown-subtitle">Simple booking process</span>
-                                </div>
-                            </a>
-                            <a href="{{ auth()->check() ? route('orders.index') : route('products.index') }}" class="nav-dropdown-item">
-                                <i class="bi bi-arrow-clockwise"></i>
-                                <div class="dropdown-text">
-                                    <span class="dropdown-title">Return & Repeat</span>
-                                    <span class="dropdown-subtitle">Easy returns</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- About Us Dropdown -->
-                    <div class="nav-dropdown">
-                        <a href="#about" class="nav-link-main">About Us</a>
-                        <div class="nav-dropdown-menu">
-                            <a href="#about" class="nav-dropdown-item">
-                                <i class="bi bi-people"></i>
-                                <div class="dropdown-text">
-                                    <span class="dropdown-title">About DrukWear</span>
-                                    <span class="dropdown-subtitle">Our Story and Mission</span>
-                                </div>
-                            </a>
-                            <a href="#faqs" class="nav-dropdown-item">
-                                <i class="bi bi-question-circle"></i>
-                                <div class="dropdown-text">
-                                    <span class="dropdown-title">FAQs</span>
-                                    <span class="dropdown-subtitle">Common questions answered</span>
-                                </div>
-                            </a>
-                            <a href="#contact" class="nav-dropdown-item">
-                                <i class="bi bi-telephone"></i>
-                                <div class="dropdown-text">
-                                    <span class="dropdown-title">Contact Us</span>
-                                    <span class="dropdown-subtitle">+975-443-7890</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
+    <header class="site-header">
+        <div class="site-utility">
+            <div class="site-top-inner">
+                <div class="utility-left">
+                    <a href="{{ route('home') }}#how-it-works" class="utility-link">How it Works</a>
+                    <span class="utility-divider">|</span>
+                    <form action="{{ route('products.index') }}" method="GET" class="utility-search-form" role="search">
+                        <button class="utility-search-icon" type="submit" aria-label="Search">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <input
+                            type="text"
+                            name="search"
+                            class="utility-search-input"
+                            placeholder="Search item, trend or occasion"
+                            value="{{ request('search') }}"
+                        >
+                    </form>
                 </div>
-                
-                <!-- Right Side -->
-                <div class="nav-right ms-auto">
-                    @auth
-                        <a href="{{ route('cart.index') }}" class="btn-login cart-link">
-                            <i class="bi bi-cart"></i>
-                            {{ Auth::user()->isCustomer() ? 'Cart' : 'Cart Monitor' }}
-                            @if(($cartBadgeCount ?? 0) > 0)
-                                <span class="cart-badge">{{ $cartBadgeCount > 99 ? '99+' : $cartBadgeCount }}</span>
-                            @endif
-                        </a>
-                        
-                        @if(Auth::user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="btn-signup">Dashboard</a>
-                        @elseif(Auth::user()->isSeller())
-                            <a href="{{ route('seller.dashboard') }}" class="btn-signup">Dashboard</a>
-                        @else
-                            <a href="{{ route('orders.index') }}" class="btn-login">Orders</a>
+
+                <a class="top-wordmark" href="{{ route('home') }}" aria-label="Rentique Home">
+                    RENTI<span class="logo-q">Q</span>UE
+                </a>
+
+                <div class="utility-right">
+                    <a href="#" class="icon-action" aria-label="Wishlist">
+                        <i class="bi bi-heart"></i>
+                        @if(($wishlistCount ?? 0) > 0)
+                            <span class="icon-badge">{{ ($wishlistCount ?? 0) > 99 ? '99+' : ($wishlistCount ?? 0) }}</span>
                         @endif
-                        
-                        <div class="dropdown">
-                            <a class="btn-login dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                @if(!Auth::user()->isAdmin() && !Auth::user()->isSeller())
-                                    <li><a class="dropdown-item" href="{{ route('profile') }}">Profile</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                @endif
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
+                    </a>
+
+                    <a href="{{ route('cart.index') }}" class="icon-action" aria-label="Cart">
+                        <i class="bi bi-cart3"></i>
+                        @if(($cartBadgeCount ?? 0) > 0)
+                            <span class="icon-badge">{{ $cartBadgeCount > 99 ? '99+' : $cartBadgeCount }}</span>
+                        @endif
+                    </a>
+
+                    @auth
+                        @if(Auth::user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="btn-login">Dashboard</a>
+                        @elseif(Auth::user()->isSeller())
+                            <a href="{{ route('seller.dashboard') }}" class="btn-login">Dashboard</a>
+                        @else
+                            <a href="{{ route('profile') }}" class="btn-login">Profile</a>
+                        @endif
+
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn-signup">Logout</button>
+                        </form>
                     @else
-                        <a href="{{ route('login') }}" class="btn-login">Login</a>
-                        <a href="{{ route('register') }}" class="btn-signup">Sign Up</a>
-                        <a href="#" class="btn-login"><i class="bi bi-bell"></i></a>
+                        <a href="{{ route('login') }}" class="btn-login">Sign In</a>
+                        <a href="{{ route('register') }}" class="btn-signup">Join Now</a>
                     @endauth
                 </div>
             </div>
         </div>
-    </nav>
+
+        <div class="site-category-row">
+            <div class="site-bottom-inner">
+                <nav class="main-nav-links" aria-label="Primary">
+                    <a href="{{ route('products.index') }}" class="main-nav-link">Browse All</a>
+
+                    <a href="{{ route('products.index', ['sort' => 'newest']) }}" class="main-nav-link">New Arrivals</a>
+
+                    <div class="dropdown">
+                        <a href="#" class="main-nav-link dropdown-toggle" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+                        <ul class="dropdown-menu main-nav-dropdown-menu" aria-labelledby="categoriesDropdown">
+                            @php
+                                $navCategories = \App\Models\Category::where('is_approved', true)->orderBy('name')->get();
+                                if ($navCategories->isEmpty()) {
+                                    $navCategories = \App\Models\Category::orderBy('name')->get();
+                                }
+                            @endphp
+                            <li><a class="dropdown-item" href="{{ route('products.index') }}">All Categories</a></li>
+                            @if($navCategories->isNotEmpty())
+                                <li><hr class="dropdown-divider"></li>
+                            @endif
+                            @forelse($navCategories as $navCategory)
+                                <li><a class="dropdown-item" href="{{ route('products.index', ['category' => $navCategory->name]) }}">{{ $navCategory->name }}</a></li>
+                            @empty
+                                <li><span class="dropdown-item-text">No categories available</span></li>
+                            @endforelse
+                        </ul>
+                    </div>
+
+                    <a href="{{ route('products.index', ['search' => 'wedding']) }}" class="main-nav-link">Weddings</a>
+                    <a href="{{ route('products.index', ['sort' => 'price_asc']) }}" class="main-nav-link is-accent">Clearance</a>
+                </nav>
+            </div>
+        </div>
+    </header>
 
     <!-- Alerts -->
     @if(session('success'))
@@ -874,7 +1175,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
-                    <span>Druk</span><span>Wear</span>
+                    <span>Ren</span><span>tique</span>
                 </div>
                 <div class="social-links">
                     <a href="#"><i class="bi bi-facebook"></i></a>
@@ -885,10 +1186,10 @@
             </div>
             <div class="footer-contact">
                 <div><i class="bi bi-telephone"></i> +975-421-7898</div>
-                <div><i class="bi bi-envelope"></i> info@drukwear.bt</div>
+                <div><i class="bi bi-envelope"></i> info@rentique.bt</div>
             </div>
             <div class="footer-bottom">
-                &copy; {{ date('Y') }} DrukWear. All rights reserved.
+                &copy; {{ date('Y') }} Rentique. All rights reserved.
             </div>
         </div>
     </footer>

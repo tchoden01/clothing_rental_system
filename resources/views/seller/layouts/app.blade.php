@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Seller Dashboard - DrukWear')</title>
+    <title>@yield('title', 'Seller Dashboard - Rentique')</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,8 +19,8 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #F5F5F5;
+            color: #333333;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -29,53 +29,154 @@
         /* Header */
         .seller-header {
             background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            padding: 1rem 2rem;
+            border-bottom: 1px solid #ded8cc;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            padding: 0;
             position: sticky;
             top: 0;
             z-index: 1000;
+        }
+
+        .seller-header-inner {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 0.8rem;
+            min-height: 68px;
+            padding: 0.65rem 1.25rem;
         }
         
         .seller-brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
             text-decoration: none;
+            justify-self: center;
+            line-height: 1;
+            gap: 0;
         }
-        
-        .seller-brand img {
-            width: 40px;
-            height: 40px;
+
+        .seller-logo-text {
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #262626;
         }
-        
-        .seller-brand-text {
-            font-size: 1.5rem;
-            font-weight: 700;
+
+        .seller-logo-text .logo-q {
+            color: #800020;
         }
-        
-        .seller-brand-text .druk {
-            color: #d97d3f;
-        }
-        
-        .seller-brand-text .wear {
-            color: #333;
-        }
+
         
         .seller-nav {
+            border-top: 1px solid #ece6d9;
+            border-bottom: 1px solid #ece6d9;
             display: flex;
             align-items: center;
-            gap: 2rem;
+            justify-content: center;
+            gap: 2.3rem;
+            min-height: 52px;
+            overflow: visible;
+            padding: 0 1rem;
+        }
+
+        .seller-nav::-webkit-scrollbar {
+            height: 0;
         }
         
         .seller-nav a {
-            color: #333;
+            color: #231f1b;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
+            font-size: 0.98rem;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            padding: 0.35rem 0;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .seller-nav .is-accent {
+            color: #800020;
+        }
+
+        .seller-nav .dropdown {
+            position: relative;
+        }
+
+        .seller-nav .dropdown-toggle::after {
+            margin-left: 0.35rem;
+            vertical-align: 0.1em;
+            border-top-width: 0.35em;
+            border-right-width: 0.3em;
+            border-left-width: 0.3em;
+        }
+
+        .seller-menu-dropdown {
+            border: 1px solid #e1d9ca;
+            border-radius: 10px;
+            padding: 0.45rem;
+            min-width: 230px;
+            max-height: 320px;
+            overflow-y: auto;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+            margin-top: 0.4rem;
+        }
+
+        .seller-menu-dropdown .dropdown-item {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #2a2621;
+            border-radius: 7px;
+            padding: 0.5rem 0.7rem;
+        }
+
+        .seller-menu-dropdown .dropdown-item:hover,
+        .seller-menu-dropdown .dropdown-item:focus {
+            background-color: #F5F5F5;
+            color: #800020;
         }
         
         .seller-nav a:hover {
-            color: #d97d3f;
+            color: #800020;
+            border-bottom-color: #A0003A;
+        }
+
+        .seller-actions {
+            justify-self: end;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .seller-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            border: 1px solid #d6ccba;
+            color: #3f362d;
+            background: #fff;
+        }
+
+        .seller-chip:hover {
+            color: #fff;
+            border-color: #800020;
+            background: #800020;
+        }
+
+        .btn:hover,
+        button.btn:hover,
+        a.btn:hover {
+            background-color: #660018 !important;
+            border-color: #660018 !important;
+            color: #fff !important;
         }
         
         .user-profile {
@@ -83,8 +184,9 @@
             align-items: center;
             gap: 0.8rem;
             cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid #d6ccba;
             transition: background-color 0.3s;
         }
         
@@ -107,35 +209,22 @@
         /* Sidebar */
         .seller-layout {
             display: flex;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 72px);
             flex: 1;
+            margin-bottom: 1rem;
         }
         
         .seller-sidebar {
             width: 220px;
-            background-color: #2c5f5f;
+            background: linear-gradient(180deg, #800020 0%, #660018 100%);
             color: white;
             padding: 1.5rem 0;
             position: sticky;
-            top: 80px;
-            height: calc(100vh - 80px);
+            top: 72px;
+            height: calc(100vh - 72px);
             overflow-y: auto;
         }
         
-        .sidebar-brand {
-            padding: 0 1.5rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 1rem;
-        }
-        
-        .sidebar-brand-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-        
-        .sidebar-brand .druk {
-            color: #d97d3f;
-        }
         
         .sidebar-nav {
             list-style: none;
@@ -163,9 +252,9 @@
         }
         
         .sidebar-nav-link.active {
-            background-color: rgba(215, 125, 63, 0.2);
+            background-color: rgba(160, 0, 58, 0.22);
             color: white;
-            border-left: 4px solid #d97d3f;
+            border-left: 4px solid #A0003A;
         }
         
         .sidebar-nav-link i {
@@ -175,7 +264,7 @@
         
         .sidebar-nav-badge {
             margin-left: auto;
-            background-color: #d97d3f;
+            background-color: #A0003A;
             color: white;
             padding: 0.2rem 0.5rem;
             border-radius: 10px;
@@ -187,6 +276,7 @@
         .seller-main {
             flex: 1;
             padding: 2rem;
+            padding-bottom: 2.25rem;
             overflow-x: hidden;
         }
         
@@ -197,7 +287,7 @@
         .page-title {
             font-size: 1.8rem;
             font-weight: 600;
-            color: #333;
+            color: #333333;
             margin-bottom: 0;
         }
         
@@ -294,7 +384,7 @@
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #333;
+            color: #333333;
             margin-bottom: 0;
             display: flex;
             align-items: center;
@@ -314,13 +404,13 @@
         }
         
         .btn-primary {
-            background-color: #2c5f5f;
-            border-color: #2c5f5f;
+            background-color: #800020;
+            border-color: #800020;
         }
         
         .btn-primary:hover {
-            background-color: #234848;
-            border-color: #234848;
+            background-color: #660018;
+            border-color: #660018;
         }
         
         .btn-success {
@@ -360,13 +450,13 @@
         .back-arrow-btn {
             position: fixed;
             left: 0.9rem;
-            top: 5.6rem;
+            top: 6.5rem;
             width: 40px;
             height: 40px;
             border: 1px solid rgba(0, 0, 0, 0.12);
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.95);
-            color: #2c5f5f;
+            color: #800020;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -375,16 +465,18 @@
         }
 
         .back-arrow-btn:hover {
-            color: #234848;
+            color: #660018;
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
         }
 
         .seller-footer {
-            background: #234848;
+            background: #800020;
             color: rgba(255, 255, 255, 0.92);
             border-top: 1px solid rgba(255, 255, 255, 0.14);
             padding: 0.9rem 2rem;
             font-size: 0.9rem;
+            margin-top: auto;
+            width: 100%;
         }
 
         .seller-footer-inner {
@@ -410,6 +502,27 @@
                 padding: 1.5rem;
             }
 
+            .seller-header-inner {
+                grid-template-columns: auto 1fr auto;
+            }
+
+            .seller-nav {
+                justify-content: flex-start;
+                gap: 1.25rem;
+                padding: 0 0.75rem;
+                overflow-x: auto;
+                overflow-y: visible;
+            }
+
+            .seller-brand {
+                justify-self: center;
+            }
+
+            .seller-logo-text {
+                font-size: 1.28rem;
+                letter-spacing: 0.11em;
+            }
+
             .seller-footer {
                 padding: 0.85rem 1rem;
             }
@@ -421,7 +534,7 @@
             }
 
             .back-arrow-btn {
-                top: 5rem;
+                top: 5.8rem;
                 left: 0.7rem;
                 width: 36px;
                 height: 36px;
@@ -432,65 +545,86 @@
     @stack('styles')
 </head>
 <body>
-    <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrSellerHome()">
-        <i class="bi bi-arrow-left"></i>
-    </button>
+    @unless(request()->routeIs('seller.dashboard'))
+        <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrSellerHome()">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+    @endunless
 
     <!-- Header -->
     <header class="seller-header">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="seller-header-inner">
+            <div></div>
+
             <a href="{{ route('seller.dashboard') }}" class="seller-brand">
-                <i class="bi bi-gem" style="font-size: 1.8rem; color: #d97d3f;"></i>
-                <span class="seller-brand-text">
-                    <span class="druk">Druk</span><span class="wear">Wear</span>
-                </span>
+                <span class="seller-logo-text">RENTI<span class="logo-q">Q</span>UE</span>
             </a>
             
-            <div class="seller-nav d-none d-md-flex">
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('products.index') }}">Browse</a>
-                <a href="{{ route('home') }}#how-it-works">How it Works</a>
-                <a href="{{ route('home') }}#about">About Us</a>
-            </div>
-            
-            <div class="dropdown">
-                <div class="user-profile" data-bs-toggle="dropdown">
-                    <i class="bi bi-search" style="font-size: 1.2rem; color: #666;"></i>
-                    <div class="user-avatar">
-                        {{ substr(Auth::user()->name, 0, 1) }}
+            <div class="seller-actions">
+                <a href="{{ route('products.index') }}" class="seller-chip d-none d-lg-inline-flex" aria-label="Search items">
+                    <i class="bi bi-search"></i>
+                </a>
+                <a href="{{ route('seller.dashboard') }}" class="seller-chip d-none d-lg-inline-flex">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <div class="dropdown">
+                    <div class="user-profile" data-bs-toggle="dropdown">
+                        <div class="user-avatar">
+                            {{ substr(Auth::user()->name, 0, 1) }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem;">{{ Auth::user()->name }}</div>
+                        </div>
+                        <i class="bi bi-chevron-down" style="font-size: 0.8rem; color: #666;"></i>
                     </div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 0.9rem;">{{ Auth::user()->name }}</div>
-                    </div>
-                    <i class="bi bi-chevron-down" style="font-size: 0.8rem; color: #666;"></i>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ route('seller.dashboard') }}">Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('seller.dashboard') }}">Dashboard</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="dropdown-item">Logout</button>
-                        </form>
-                    </li>
-                </ul>
             </div>
         </div>
+
+        <nav class="seller-nav" aria-label="Seller primary navigation">
+            <a href="{{ route('products.index') }}">Browse All</a>
+            <a href="{{ route('products.index', ['sort' => 'newest']) }}">New Arrivals</a>
+
+            <div class="dropdown">
+                <a href="#" class="dropdown-toggle" id="sellerCategoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+                <ul class="dropdown-menu seller-menu-dropdown" aria-labelledby="sellerCategoriesDropdown">
+                    @php
+                        $sellerNavCategories = \App\Models\Category::where('is_approved', true)->orderBy('name')->get();
+                        if ($sellerNavCategories->isEmpty()) {
+                            $sellerNavCategories = \App\Models\Category::orderBy('name')->get();
+                        }
+                    @endphp
+                    <li><a class="dropdown-item" href="{{ route('products.index') }}">All Categories</a></li>
+                    @if($sellerNavCategories->isNotEmpty())
+                        <li><hr class="dropdown-divider"></li>
+                    @endif
+                    @forelse($sellerNavCategories as $sellerNavCategory)
+                        <li><a class="dropdown-item" href="{{ route('products.index', ['category' => $sellerNavCategory->name]) }}">{{ $sellerNavCategory->name }}</a></li>
+                    @empty
+                        <li><span class="dropdown-item-text">No categories available</span></li>
+                    @endforelse
+                </ul>
+            </div>
+
+            <a href="{{ route('products.index', ['search' => 'wedding']) }}">Weddings</a>
+            <a href="{{ route('products.index', ['sort' => 'price_asc']) }}" class="is-accent">Clearance</a>
+        </nav>
     </header>
     
     <!-- Layout -->
     <div class="seller-layout">
         <!-- Sidebar -->
         <aside class="seller-sidebar">
-            <div class="sidebar-brand">
-                <div class="seller-brand">
-                    <i class="bi bi-gem" style="font-size: 1.5rem; color: #d97d3f;"></i>
-                    <span class="sidebar-brand-text">
-                        <span class="druk">Druk</span><span style="color: white;">Wear</span>
-                    </span>
-                </div>
-            </div>
-            
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
                     <a href="{{ route('seller.dashboard') }}" class="sidebar-nav-link {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">
@@ -577,8 +711,8 @@
 
     <footer class="seller-footer">
         <div class="seller-footer-inner">
-            <div><strong>DrukWear Seller Portal</strong></div>
-            <div>&copy; {{ date('Y') }} DrukWear. All rights reserved.</div>
+            <div><strong>Rentique Seller Portal</strong></div>
+            <div>&copy; {{ date('Y') }} Rentique. All rights reserved.</div>
         </div>
     </footer>
     

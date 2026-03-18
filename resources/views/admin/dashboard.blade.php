@@ -6,11 +6,11 @@
 <style>
     .admin-dash {
         background:
-            radial-gradient(circle at 14% 18%, rgba(191, 153, 94, 0.13), transparent 36%),
-            radial-gradient(circle at 88% 8%, rgba(72, 114, 90, 0.13), transparent 36%),
-            linear-gradient(180deg, #f8f4ec 0%, #f1e8da 100%);
+            radial-gradient(circle at 14% 18%, rgba(191, 153, 94, 0.09), transparent 36%),
+            radial-gradient(circle at 88% 8%, rgba(72, 114, 90, 0.08), transparent 36%),
+            linear-gradient(180deg, #f7f3ed 0%, #f2ebe0 100%);
         border-radius: 14px;
-        padding: 1.2rem;
+        padding: 1.15rem;
     }
 
     .admin-title {
@@ -36,7 +36,7 @@
         color: #fff;
         padding: 1rem;
         min-height: 108px;
-        box-shadow: 0 8px 18px rgba(34, 34, 34, 0.14);
+        box-shadow: 0 8px 16px rgba(34, 34, 34, 0.12);
         position: relative;
         overflow: hidden;
     }
@@ -63,10 +63,10 @@
     .kpi-teal { background: linear-gradient(130deg, #407d72, #285c54); }
 
     .dash-panel {
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(149, 129, 101, 0.23);
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(149, 129, 101, 0.2);
         border-radius: 12px;
-        box-shadow: 0 6px 14px rgba(45, 38, 27, 0.11);
+        box-shadow: 0 4px 12px rgba(45, 38, 27, 0.1);
         backdrop-filter: blur(1.5px);
         height: 100%;
     }
@@ -77,7 +77,7 @@
         align-items: center;
         gap: 0.7rem;
         padding: 0.8rem 1rem;
-        border-bottom: 1px solid rgba(142, 121, 91, 0.22);
+        border-bottom: 1px solid rgba(142, 121, 91, 0.18);
     }
 
     .dash-panel-title {
@@ -99,7 +99,7 @@
     }
 
     .table-admin th {
-        background: rgba(244, 235, 222, 0.7);
+        background: rgba(244, 235, 222, 0.58);
         color: #685b49;
         font-weight: 600;
     }
@@ -127,7 +127,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px dashed rgba(121, 102, 76, 0.3);
+        border-bottom: 1px dashed rgba(121, 102, 76, 0.24);
         padding-bottom: 0.5rem;
         color: #5a4d3b;
     }
@@ -138,8 +138,8 @@
         margin-top: 0.9rem;
         border-radius: 10px;
         padding: 0.5rem;
-        border: 1px solid rgba(148, 129, 102, 0.24);
-        background: linear-gradient(180deg, #f5ecdc, #efe4d2);
+        border: 1px solid rgba(148, 129, 102, 0.2);
+        background: linear-gradient(180deg, #f5ecdc, #efe6d8);
     }
 
     .trend-axis {

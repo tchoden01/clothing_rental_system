@@ -125,6 +125,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/orders/{id}', [AdminController::class, 'showOrder'])->name('orders.show');
     Route::post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus'])->name('orders.status');
+
+    // Pickup Management
+    Route::get('/pickups', [AdminController::class, 'pickups'])->name('pickups');
+    Route::post('/pickups/{id}/status', [AdminController::class, 'updatePickupStatus'])->name('pickups.status');
     
     // Categories
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');

@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\PlatformSetting;
+use App\Models\Pickup;
 use App\Notifications\AdminDecisionNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -137,6 +138,9 @@ class OrderController extends Controller
                 $order->payment_status = 'paid';
                 $order->status = 'confirmed';
                 $order->save();
+
+                // Confirmed orders should enter pickup lifecycle immediately.
+                Pickup::ensureForOrder($order);
             }
 
             // Clear cart
