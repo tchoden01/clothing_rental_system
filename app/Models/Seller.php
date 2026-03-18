@@ -44,4 +44,12 @@ class Seller extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    /**
+     * Get category requests submitted by this seller.
+     */
+    public function submittedCategories()
+    {
+        return $this->hasMany(Category::class);
+    }
 }

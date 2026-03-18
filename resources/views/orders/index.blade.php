@@ -13,6 +13,10 @@
     @if($orders->count() > 0)
         <div class="row">
             @foreach($orders as $order)
+                @php
+                    $canCancelOrder = in_array($order->status, ['pending', 'confirmed'], true)
+                        && \Carbon\Carbon::today()->lt(\Carbon\Carbon::parse($order->rental_start_date));
+                @endphp
                 <div class="col-12 mb-4">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -23,6 +27,8 @@
                             <div>
                                 @if($order->payment_status == 'paid')
                                     <span class="badge bg-success">Paid</span>
+                                @elseif($order->payment_status == 'refunded')
+                                    <span class="badge bg-secondary">Refunded</span>
                                 @elseif($order->payment_status == 'pending')
                                     <span class="badge bg-warning">Payment Pending</span>
                                 @else
@@ -81,7 +87,7 @@
                                         <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary w-100">
                                             <i class="bi bi-eye"></i> View Details
                                         </a>
-                                        @if($order->status == 'pending' || $order->status == 'confirmed')
+                                                                                @if($canCancelOrder)
                                             <form action="{{ route('orders.cancel', $order->id) }}" method="POST" class="mt-2"
                                                   onsubmit="return confirm('Are you sure you want to cancel this order?')">
                                                 @csrf

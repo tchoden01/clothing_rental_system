@@ -3,7 +3,18 @@
 @section('title', 'Order Details')
 
 @section('content')
-<div class="container">
+@php
+    $computedOrderTotal = $order->orderItems->sum(function ($item) {
+        $days = \Carbon\Carbon::parse($item->rental_start_date)->diffInDays($item->rental_end_date);
+        $days = max($days, 1);
+
+        return $item->rental_price * $item->quantity * $days;
+    });
+
+    $canCancelOrder = in_array($order->status, ['pending', 'confirmed'], true)
+        && \Carbon\Carbon::today()->lt(\Carbon\Carbon::parse($order->rental_start_date));
+@endphp
+<div class="container order-details-page">
     <div class="row mb-4">
         <div class="col-md-6">
             <h2>Order #{{ $order->id }}</h2>
@@ -66,7 +77,7 @@
                             <table class="table">
                                 <tr>
                                     <td><strong>Total Amount:</strong></td>
-                                    <td class="text-end"><strong class="text-primary">Nu. {{ number_format($order->total_price, 2) }}</strong></td>
+                                    <td class="text-end"><strong class="text-primary">Nu. {{ number_format($computedOrderTotal, 2) }}</strong></td>
                                 </tr>
                             </table>
                         </div>
@@ -76,7 +87,7 @@
         </div>
 
         <!-- Order Info & Status -->
-        <div class="col-md-4">
+        <div class="col-md-4 order-side-column">
             <!-- Order Status -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -89,9 +100,8 @@
                         </span>
                     </div>
                     
-                    @if($order->status == 'pending' || $order->status == 'confirmed')
-                        <form action="{{ route('orders.cancel', $order->id) }}" method="POST"
-                              onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                    @if($canCancelOrder)
+                        <form action="{{ route('orders.cancel', $order->id) }}" method="POST" class="cancel-order-form">
                             @csrf
                             <button type="submit" class="btn btn-outline-danger w-100">
                                 <i class="bi bi-x-circle"></i> Cancel Order
@@ -111,6 +121,8 @@
                         <strong>Status:</strong> 
                         @if($order->payment_status == 'paid')
                             <span class="badge bg-success">Paid</span>
+                        @elseif($order->payment_status == 'refunded')
+                            <span class="badge bg-secondary">Refunded</span>
                         @elseif($order->payment_status == 'pending')
                             <span class="badge bg-warning">Pending</span>
                         @else
@@ -154,7 +166,7 @@
             </div>
 
             <!-- Customer Information -->
-            <div class="card">
+            <div class="card customer-info-card">
                 <div class="card-header">
                     <h5 class="mb-0">Customer Information</h5>
                 </div>
@@ -168,3 +180,57 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .order-details-page {
+        padding-bottom: 2.5rem;
+    }
+
+    .order-side-column .customer-info-card {
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .order-details-page {
+            padding-bottom: 1.5rem;
+        }
+
+        .order-side-column .customer-info-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cancelForm = document.querySelector('.cancel-order-form');
+
+        if (!cancelForm) {
+            return;
+        }
+
+        cancelForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Are you sure you want to cancel this order?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Cancel Order',
+                cancelButtonText: 'No',
+                confirmButtonColor: '#dc3545',
+                reverseButtons: true
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    cancelForm.submit();
+                }
+            });
+        });
+    });
+</script>
+@endpush

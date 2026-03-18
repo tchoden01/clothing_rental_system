@@ -5,9 +5,156 @@
 @push('styles')
 <style>
     .hero-section {
-        background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{{ asset('images/bhutan-dzong-hero.png') }}');
-        background-size: cover;
-        background-position: center;
+        position: relative;
+        overflow: hidden;
+        min-height: 620px;
+        background: none;
+    }
+
+    .hero-media {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .hero-carousel,
+    .hero-carousel .carousel-inner,
+    .hero-carousel .carousel-item {
+        height: 100%;
+    }
+
+    .hero-carousel .carousel-item {
+        position: relative;
+        background: #0f1718;
+    }
+
+    .hero-carousel .carousel-item::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(100deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.35) 40%, rgba(0, 0, 0, 0.22) 100%);
+        z-index: 1;
+    }
+
+    .hero-carousel img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        padding: 0;
+        transform-origin: center;
+        will-change: transform, opacity;
+    }
+
+    .hero-carousel .carousel-item.active img {
+        animation-name: heroEmerge;
+        animation-duration: 4.8s;
+        animation-timing-function: cubic-bezier(0.16, 0.84, 0.44, 1);
+        animation-fill-mode: both;
+    }
+
+    @keyframes heroEmerge {
+        0% {
+            transform: scale(1.35);
+            opacity: 0.8;
+            filter: blur(1.6px);
+        }
+        55% {
+            transform: scale(1.14);
+            opacity: 0.95;
+            filter: blur(0.5px);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+            filter: blur(0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-carousel .carousel-item.active img {
+            animation: none;
+        }
+    }
+
+    .hero-content-wrap {
+        position: relative;
+        z-index: 2;
+        min-height: 620px;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-carousel .carousel-indicators [data-bs-target] {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next {
+        width: 52px;
+        opacity: 0.95;
+    }
+
+    .hero-carousel .carousel-control-prev-icon,
+    .hero-carousel .carousel-control-next-icon {
+        width: 2.1rem;
+        height: 2.1rem;
+        background-color: rgba(0, 0, 0, 0.35);
+        border-radius: 999px;
+        background-size: 55% 55%;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section,
+        .hero-content-wrap {
+            min-height: 520px;
+        }
+
+        .hero-carousel .carousel-control-prev,
+        .hero-carousel .carousel-control-next {
+            width: 42px;
+        }
+    }
+
+    .why-choose-image {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-carousel,
+    .about-carousel .carousel-inner,
+    .about-carousel .carousel-item {
+        height: 100%;
+        min-height: 400px;
+    }
+
+    .about-carousel .carousel-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .about-carousel .carousel-indicators [data-bs-target] {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .about-carousel .carousel-control-prev,
+    .about-carousel .carousel-control-next {
+        width: 44px;
+    }
+
+    .about-carousel .carousel-control-prev-icon,
+    .about-carousel .carousel-control-next-icon {
+        width: 1.8rem;
+        height: 1.8rem;
+        background-color: rgba(0, 0, 0, 0.35);
+        border-radius: 999px;
+        background-size: 58% 58%;
     }
     
     .work-step-link {
@@ -44,18 +191,49 @@
 @section('content')
 <!-- Hero Section -->
 <div class="hero-section">
-    <div class="container">
-        <div class="row">
+    <div class="hero-media" aria-hidden="true">
+        <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel" data-bs-interval="4200" data-bs-pause="hover" data-bs-touch="true">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="{{ asset('images/kira2.jpg') }}" alt="Traditional kira outfit">
+                </div>
+                <div class="carousel-item">
+                    <img src="{{ asset('images/kishuthara.png') }}" alt="Kishuthara collection">
+                </div>
+                <div class="carousel-item">
+                    <img src="{{ asset('images/promdress3.jpg') }}" alt="Prom dress highlight">
+                </div>
+                <div class="carousel-item">
+                    <img src="{{ asset('images/weddingdress.jpg') }}" alt="Wedding dress highlight">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Next slide">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container hero-content-wrap">
+        <div class="row w-100">
             <div class="col-lg-6">
                 <div class="hero-content">
                     <div class="hero-logo">
                         <span>Druk</span><span>Wear</span>
                     </div>
-                    <h1>Rent Traditional<br>Bhutanese Attire<br>with <span>Ease</span></h1>
-                    <p>Affordable Gho and Kira rentals for weddings, festivals, and special occasions.</p>
+                    <h1>Rent Authentic<br>Bhutanese Attire<br>for Every <span>Special Occasion</span></h1>
+                    <p>Affordable clothes and bags for weddings, festivals, and special events.</p>
                     <div class="hero-buttons">
                         <a href="{{ route('products.index') }}" class="btn-browse">
-                            Browse Collection <i class="bi bi-arrow-right"></i>
+                            Browse Attire <i class="bi bi-arrow-right"></i>
                         </a>
                         <a href="{{ route('products.index') }}" class="btn-rent">
                             Rent Now <i class="bi bi-arrow-right"></i>
@@ -240,7 +418,34 @@
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="why-choose-image" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80');"></div>
+                <div class="why-choose-image">
+                    <div id="aboutImageCarousel" class="carousel slide carousel-fade about-carousel" data-bs-ride="carousel" data-bs-interval="3200" data-bs-pause="hover" data-bs-touch="true">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#aboutImageCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="About slide 1"></button>
+                            <button type="button" data-bs-target="#aboutImageCarousel" data-bs-slide-to="1" aria-label="About slide 2"></button>
+                            <button type="button" data-bs-target="#aboutImageCarousel" data-bs-slide-to="2" aria-label="About slide 3"></button>
+                        </div>
+
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="{{ asset('images/kira2.jpg') }}" alt="Bhutanese kira attire">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{{ asset('images/kishuthara.png') }}" alt="Colorful woven textile">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{{ asset('images/wedding gho.png') }}" alt="Traditional wedding gho attire">
+                            </div>
+                        </div>
+
+                        <button class="carousel-control-prev" type="button" data-bs-target="#aboutImageCarousel" data-bs-slide="prev" aria-label="Previous slide">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#aboutImageCarousel" data-bs-slide="next" aria-label="Next slide">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -2,6 +2,19 @@
 
 @section('title', 'Edit Product')
 
+@push('styles')
+<style>
+    .seller-edit-thumb {
+        width: 100%;
+        height: 130px;
+        object-fit: contain;
+        object-position: center center;
+        background: #f4f1eb;
+        padding: 0.45rem;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
@@ -55,6 +68,18 @@
                                 @enderror
                             </div>
 
+                            <div class="col-md-6 mb-3">
+                                <label for="material" class="form-label">Material</label>
+                                <input type="text" class="form-control @error('material') is-invalid @enderror" 
+                                       id="material" name="material" value="{{ old('material', $product->material) }}" 
+                                       placeholder="e.g., Cotton, Silk, Wool blend">
+                                @error('material')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="color" class="form-label">Color</label>
                                 <input type="text" class="form-control @error('color') is-invalid @enderror" 
@@ -131,7 +156,7 @@
                                     @foreach($product->images as $image)
                                         <div class="col-md-3 mb-2">
                                             <img src="{{ asset('storage/' . $image) }}" 
-                                                 class="img-thumbnail" alt="Product image">
+                                                 class="img-thumbnail seller-edit-thumb" alt="Product image">
                                         </div>
                                     @endforeach
                                 </div>

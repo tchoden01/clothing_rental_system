@@ -14,12 +14,12 @@ class CustomerController extends Controller
     {
         $products = Product::with(['seller', 'category'])
             ->where('is_approved', true)
-            ->where('status', 'available')
+            ->whereIn('status', ['approved', 'available'])
             ->latest()
             ->take(12)
             ->get();
 
-        $categories = Category::all();
+        $categories = Category::where('is_approved', true)->orderBy('name')->get();
 
         return view('home', compact('products', 'categories'));
     }

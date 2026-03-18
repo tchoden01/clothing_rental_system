@@ -14,6 +14,7 @@ class Product extends Model
         'category_id',
         'name',
         'size',
+        'material',
         'color',
         'condition',
         'location',

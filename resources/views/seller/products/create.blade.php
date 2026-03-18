@@ -18,7 +18,10 @@
                         @csrf
                         
                         <div class="mb-3">
-                            <label for="category_id" class="form-label">Category *</label>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="category_id" class="form-label mb-0">Category *</label>
+                                <a href="{{ route('seller.categories.request') }}" class="small">Request a new category</a>
+                            </div>
                             <select class="form-select @error('category_id') is-invalid @enderror" 
                                     id="category_id" name="category_id" required>
                                 <option value="">Select Category</option>
@@ -28,6 +31,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <small class="text-muted">Only admin-approved categories are available here.</small>
                             @error('category_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -53,6 +57,18 @@
                                 @enderror
                             </div>
 
+                            <div class="col-md-6 mb-3">
+                                <label for="material" class="form-label">Material</label>
+                                <input type="text" class="form-control @error('material') is-invalid @enderror" 
+                                       id="material" name="material" value="{{ old('material') }}" 
+                                       placeholder="e.g., Cotton, Silk, Wool blend">
+                                @error('material')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="color" class="form-label">Color</label>
                                 <input type="text" class="form-control @error('color') is-invalid @enderror" 

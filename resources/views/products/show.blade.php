@@ -5,6 +5,7 @@
 @push('styles')
 <style>
     .product-details-page {
+        padding-top: 1.2rem;
         padding-bottom: 3rem;
     }
 
@@ -15,11 +16,19 @@
         overflow: hidden;
     }
 
+    .product-image-frame .carousel-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f4f1eb;
+        padding: 1rem;
+    }
+
     .product-image-full {
         width: 100%;
-        height: 460px;
+        height: 428px;
         object-fit: contain;
-        object-position: center;
+        object-position: center center;
         background: #f4f1eb;
     }
 
@@ -32,6 +41,10 @@
         .product-image-full,
         .product-image-empty {
             height: 320px;
+        }
+
+        .product-image-frame .carousel-item {
+            padding: 0.75rem;
         }
     }
 </style>
@@ -81,6 +94,12 @@
                         <tr>
                             <th width="30%">Size:</th>
                             <td>{{ $product->size }}</td>
+                        </tr>
+                    @endif
+                    @if($product->material)
+                        <tr>
+                            <th>Material:</th>
+                            <td>{{ $product->material }}</td>
                         </tr>
                     @endif
                     @if($product->color)

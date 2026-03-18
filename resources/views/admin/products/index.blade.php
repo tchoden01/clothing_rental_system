@@ -28,17 +28,15 @@
                 </thead>
                 <tbody>
                     @foreach($products as $product)
-                        <tr class="{{ !$product->is_approved ? 'table-warning' : '' }}">
+                        <tr class="{{ $product->status === 'pending' ? 'table-warning' : '' }}">
                             <td>
                                 <div class="d-flex align-items-center">
                                     @if($product->images && count($product->images) > 0)
                                         <img src="{{ asset('storage/' . $product->images[0]) }}" 
-                                             class="me-2" alt="{{ $product->name }}" 
-                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                             class="me-2 admin-product-thumb" alt="{{ $product->name }}">
                                     @else
-                                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2"
-                                             style="width: 60px; height: 60px; border-radius: 4px;">
-                                            <i class="bi bi-image"></i>
+                                        <div class="admin-product-empty d-flex align-items-center justify-content-center me-2">
+                                            <i class="bi bi-image" style="color: #9f968a;"></i>
                                         </div>
                                     @endif
                                     <div>
@@ -57,20 +55,32 @@
                             <td>Nu. {{ number_format($product->rental_price, 2) }}/day</td>
                             <td>{{ $product->quantity }}</td>
                             <td>
-                                @if($product->is_approved)
+                                @if($product->status === 'pending')
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-clock"></i> Pending
+                                    </span>
+                                @elseif(in_array($product->status, ['approved', 'available'], true))
                                     <span class="badge bg-success">
                                         <i class="bi bi-check-circle"></i> Approved
                                     </span>
+                                @elseif($product->status === 'rented')
+                                    <span class="badge bg-info text-dark">
+                                        <i class="bi bi-bag-check"></i> Rented
+                                    </span>
+                                @elseif($product->status === 'rejected')
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle"></i> Rejected
+                                    </span>
                                 @else
-                                    <span class="badge bg-warning">
-                                        <i class="bi bi-clock"></i> Pending
+                                    <span class="badge bg-secondary">
+                                        {{ ucfirst($product->status) }}
                                     </span>
                                 @endif
                             </td>
                             <td>{{ $product->created_at->format('d M Y') }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    @if(!$product->is_approved)
+                                    @if($product->status === 'pending')
                                         <form action="{{ route('admin.products.approve', $product->id) }}" 
                                               method="POST" class="d-inline">
                                             @csrf
@@ -81,7 +91,7 @@
                                         </form>
                                     @endif
                                     
-                                    @if($product->is_approved)
+                                    @if(in_array($product->status, ['approved', 'available'], true))
                                         <form action="{{ route('admin.products.reject', $product->id) }}" 
                                               method="POST" class="d-inline">
                                             @csrf
@@ -93,9 +103,9 @@
                                         </form>
                                     @endif
                                     
-                                    <a href="{{ route('products.show', $product->id) }}" 
+                                    <a href="{{ route('admin.products.show', $product->id) }}" 
                                        class="btn btn-sm btn-outline-primary" 
-                                       title="View Product" target="_blank">
+                                       title="View Product Details">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </div>
@@ -122,6 +132,24 @@
 <style>
     .table-warning {
         background-color: #fff3cd !important;
+    }
+
+    .admin-product-thumb,
+    .admin-product-empty {
+        width: 60px;
+        height: 60px;
+        border-radius: 4px;
+    }
+
+    .admin-product-thumb {
+        object-fit: contain;
+        object-position: center center;
+        background: #f4f1eb;
+        padding: 0.2rem;
+    }
+
+    .admin-product-empty {
+        background: #f4f1eb;
     }
 </style>
 @endpush

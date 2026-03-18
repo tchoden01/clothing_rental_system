@@ -149,12 +149,17 @@
     .product-image-wrap {
         background: #f4f1eb;
         height: 290px;
+        padding: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .product-image-wrap img {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        object-position: center center;
     }
 
     .product-card-body {
@@ -339,6 +344,7 @@
                             @endforeach
                         </div>
                     </section>
+
                 </aside>
 
                 <section class="products-panel">
@@ -363,7 +369,7 @@
                                         @if($product->images && count($product->images) > 0)
                                             <img src="{{ asset('storage/' . $product->images[0]) }}" alt="{{ $product->name }}">
                                         @else
-                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: #ede8df; border-radius: 8px;">
                                                 <i class="bi bi-image" style="font-size: 2.8rem; color: #9f968a;"></i>
                                             </div>
                                         @endif
@@ -374,6 +380,9 @@
                                         <p class="product-desc">{{ Str::limit($product->description, 68) }}</p>
                                         @if($product->size)
                                             <p class="product-meta"><strong>Size:</strong> {{ $product->size }}</p>
+                                        @endif
+                                        @if($product->material)
+                                            <p class="product-meta"><strong>Material:</strong> {{ $product->material }}</p>
                                         @endif
                                         @if($product->color)
                                             <p class="product-meta"><strong>Color:</strong> {{ $product->color }}</p>

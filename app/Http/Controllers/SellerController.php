@@ -28,8 +28,13 @@ class SellerController extends Controller
         }
 
         $products = Product::where('seller_id', $seller->id)->count();
-        $approvedProducts = Product::where('seller_id', $seller->id)->where('is_approved', true)->count();
-        $pendingProducts = Product::where('seller_id', $seller->id)->where('is_approved', false)->count();
+        $approvedProducts = Product::where('seller_id', $seller->id)
+            ->where('is_approved', true)
+            ->whereIn('status', ['approved', 'available'])
+            ->count();
+        $pendingProducts = Product::where('seller_id', $seller->id)
+            ->where('status', 'pending')
+            ->count();
         
         $totalEarnings = OrderItem::where('seller_id', $seller->id)
             ->whereHas('order', function($q) {
@@ -125,7 +130,7 @@ class SellerController extends Controller
     // Show add product form
     public function createProduct()
     {
-        $categories = Category::all();
+        $categories = Category::where('is_approved', true)->orderBy('name')->get();
         return view('seller.products.create', compact('categories'));
     }
 
@@ -139,9 +144,10 @@ class SellerController extends Controller
         }
 
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,id,is_approved,1',
             'name' => 'required|string|max:255',
             'size' => 'nullable|string',
+            'material' => 'nullable|string|max:255',
             'color' => 'nullable|string',
             'condition' => 'nullable|string',
             'location' => 'nullable|string',
@@ -166,6 +172,7 @@ class SellerController extends Controller
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
             'size' => $validated['size'],
+            'material' => $validated['material'] ?? null,
             'color' => $validated['color'],
             'condition' => $validated['condition'],
             'location' => $validated['location'],
@@ -174,7 +181,7 @@ class SellerController extends Controller
             'quantity' => $validated['quantity'],
             'images' => $images,
             'is_approved' => false,
-            'status' => 'available',
+            'status' => 'pending',
         ]);
 
         $platformFee = $validated['rental_price'] * ($commissionRate / 100);
@@ -189,7 +196,7 @@ class SellerController extends Controller
     {
         $seller = Auth::user()->seller;
         $product = Product::where('seller_id', $seller->id)->findOrFail($id);
-        $categories = Category::all();
+        $categories = Category::where('is_approved', true)->orderBy('name')->get();
 
         return view('seller.products.edit', compact('product', 'categories'));
     }
@@ -201,9 +208,10 @@ class SellerController extends Controller
         $product = Product::where('seller_id', $seller->id)->findOrFail($id);
 
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,id,is_approved,1',
             'name' => 'required|string|max:255',
             'size' => 'nullable|string',
+            'material' => 'nullable|string|max:255',
             'color' => 'nullable|string',
             'condition' => 'nullable|string',
             'location' => 'nullable|string',
@@ -225,6 +233,7 @@ class SellerController extends Controller
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
             'size' => $validated['size'],
+            'material' => $validated['material'] ?? null,
             'color' => $validated['color'],
             'condition' => $validated['condition'],
             'location' => $validated['location'],
@@ -274,7 +283,7 @@ class SellerController extends Controller
     public function processReturn(Request $request, $orderItemId)
     {
         $seller = Auth::user()->seller;
-        $orderItem = OrderItem::with('order')
+        $orderItem = OrderItem::with(['order', 'product'])
             ->where('seller_id', $seller->id)
             ->findOrFail($orderItemId);
 
@@ -287,6 +296,12 @@ class SellerController extends Controller
         $orderItem->update([
             'return_status' => 'returned',
         ]);
+
+        if ($orderItem->product) {
+            $orderItem->product->quantity += $orderItem->quantity;
+            $orderItem->product->status = 'available';
+            $orderItem->product->save();
+        }
 
         if ($validated['condition'] === 'damaged') {
             // Calculate damage fee based on damage type
@@ -315,5 +330,99 @@ class SellerController extends Controller
         }
 
         return redirect()->route('seller.orders')->with('success', 'Return processed successfully!');
+    }
+
+    // Show request category form
+    public function requestCategory()
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        $pendingRequests = Category::where('seller_id', $seller->id)
+            ->where('is_approved', false)
+            ->latest()
+            ->get();
+
+        return view('seller.categories.request', compact('pendingRequests'));
+    }
+
+    // Store category request for admin approval
+    public function storeCategoryRequest(Request $request)
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        if (!$seller->is_verified) {
+            return back()->with('error', 'Your account must be verified before requesting categories.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name',
+            'description' => 'nullable|string',
+        ]);
+
+        Category::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'seller_id' => $seller->id,
+            'is_approved' => false,
+        ]);
+
+        return redirect()->route('seller.categories.request')
+            ->with('success', 'Category request submitted. Admin approval is required before it can be used.');
+    }
+
+    // Seller notifications list
+    public function notifications()
+    {
+        $user = Auth::user();
+
+        if (!$user->isSeller()) {
+            return redirect()->route('home')->with('error', 'Unauthorized access.');
+        }
+
+        $notifications = $user->notifications()->paginate(20);
+
+        return view('seller.notifications.index', compact('notifications'));
+    }
+
+    // Open one notification and mark it as read
+    public function openNotification(string $id)
+    {
+        $user = Auth::user();
+
+        if (!$user->isSeller()) {
+            return redirect()->route('home')->with('error', 'Unauthorized access.');
+        }
+
+        $notification = $user->notifications()->where('id', $id)->firstOrFail();
+
+        if (is_null($notification->read_at)) {
+            $notification->markAsRead();
+        }
+
+        $actionUrl = $notification->data['action_url'] ?? route('seller.notifications');
+
+        return redirect()->to($actionUrl);
+    }
+
+    // Mark all seller notifications as read
+    public function markNotificationsRead()
+    {
+        $user = Auth::user();
+
+        if (!$user->isSeller()) {
+            return redirect()->route('home')->with('error', 'Unauthorized access.');
+        }
+
+        $user->unreadNotifications->markAsRead();
+
+        return back()->with('success', 'All notifications marked as read.');
     }
 }

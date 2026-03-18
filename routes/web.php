@@ -85,6 +85,15 @@ Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function (
     Route::get('/products/{id}/edit', [SellerController::class, 'editProduct'])->name('products.edit');
     Route::put('/products/{id}', [SellerController::class, 'updateProduct'])->name('products.update');
     Route::delete('/products/{id}', [SellerController::class, 'deleteProduct'])->name('products.delete');
+
+    // Category requests
+    Route::get('/categories/request', [SellerController::class, 'requestCategory'])->name('categories.request');
+    Route::post('/categories/request', [SellerController::class, 'storeCategoryRequest'])->name('categories.request.store');
+
+    // Seller notifications
+    Route::get('/notifications', [SellerController::class, 'notifications'])->name('notifications');
+    Route::get('/notifications/{id}/open', [SellerController::class, 'openNotification'])->name('notifications.open');
+    Route::post('/notifications/read-all', [SellerController::class, 'markNotificationsRead'])->name('notifications.read-all');
     
     // Orders
     Route::get('/orders', [SellerController::class, 'orders'])->name('orders');
@@ -108,6 +117,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Products
     Route::get('/products', [AdminController::class, 'products'])->name('products');
+    Route::get('/products/{id}', [AdminController::class, 'showProduct'])->name('products.show');
     Route::post('/products/{id}/approve', [AdminController::class, 'approveProduct'])->name('products.approve');
     Route::post('/products/{id}/reject', [AdminController::class, 'rejectProduct'])->name('products.reject');
     
@@ -120,9 +130,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/categories/create', [AdminController::class, 'createCategory'])->name('categories.create');
     Route::post('/categories', [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::post('/categories/{id}/approve', [AdminController::class, 'approveCategory'])->name('categories.approve');
+    Route::post('/categories/{id}/reject', [AdminController::class, 'rejectCategory'])->name('categories.reject');
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
     
     // Settings
+    Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 });

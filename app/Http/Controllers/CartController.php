@@ -65,6 +65,10 @@ class CartController extends Controller
 
         $product = Product::findOrFail($validated['product_id']);
 
+        if (!$product->is_approved || !in_array($product->status, ['approved', 'available'], true)) {
+            return back()->with('error', 'This product is not available for rental right now.');
+        }
+
         // Check if product is available
         if ($product->quantity < $validated['quantity']) {
             return back()->with('error', 'Insufficient quantity available.');

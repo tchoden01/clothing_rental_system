@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Support\Facades\Schema;
 
 class ProductController extends Controller
 {
@@ -13,7 +14,7 @@ class ProductController extends Controller
     {
         $query = Product::with(['seller', 'category'])
             ->where('is_approved', true)
-            ->where('status', 'available');
+            ->whereIn('status', ['approved', 'available']);
 
         // Search functionality
         if ($request->has('search')) {
@@ -80,9 +81,9 @@ class ProductController extends Controller
             }
         }
 
-        // Occasion filter
+        // Occasion filter (applies only when the products table has the column)
         $occasionFilter = $request->input('occasion');
-        if (!is_null($occasionFilter)) {
+        if (!is_null($occasionFilter) && Schema::hasColumn('products', 'occasion')) {
             $occasionValues = is_array($occasionFilter) ? $occasionFilter : [$occasionFilter];
             $occasionValues = array_values(array_filter($occasionValues, function ($value) {
                 return $value !== null && $value !== '';
@@ -112,7 +113,7 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(12);
-        $categories = Category::all();
+        $categories = Category::where('is_approved', true)->orderBy('name')->get();
 
         return view('products.index', compact('products', 'categories'));
     }
@@ -134,14 +135,14 @@ class ProductController extends Controller
         
         $products = Product::with(['seller', 'category'])
             ->where('is_approved', true)
-            ->where('status', 'available')
+            ->whereIn('status', ['approved', 'available'])
             ->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             })
             ->paginate(12);
 
-        $categories = Category::all();
+        $categories = Category::where('is_approved', true)->orderBy('name')->get();
 
         return view('products.index', compact('products', 'categories', 'search'));
     }

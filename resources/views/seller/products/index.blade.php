@@ -2,6 +2,24 @@
 
 @section('title', 'My Products')
 
+@push('styles')
+<style>
+    .seller-product-thumb {
+        height: 200px;
+        object-fit: contain;
+        object-position: center center;
+        background: #f4f1eb;
+        padding: 0.7rem;
+    }
+
+    .seller-product-empty {
+        height: 200px;
+        background: #f4f1eb;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container">
     <div class="row mb-4">
@@ -22,22 +40,28 @@
                     <div class="card h-100">
                         @if($product->images && count($product->images) > 0)
                             <img src="{{ asset('storage/' . $product->images[0]) }}" 
-                                 class="card-img-top" alt="{{ $product->name }}" 
-                                 style="height: 200px; object-fit: contain; object-position: center; background: #f4f1eb;">
+                                 class="card-img-top seller-product-thumb" alt="{{ $product->name }}">
                         @else
-                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
-                                 style="height: 200px;">
-                                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                            <div class="seller-product-empty text-muted d-flex align-items-center justify-content-center">
+                                <i class="bi bi-image" style="font-size: 3rem; color: #a69a86;"></i>
                             </div>
                         @endif
                         
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title">{{ $product->name }}</h5>
-                                @if($product->is_approved)
+                                @if($product->status === 'pending')
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                @elseif(in_array($product->status, ['approved', 'available'], true))
                                     <span class="badge bg-success">Approved</span>
+                                @elseif($product->status === 'rented')
+                                    <span class="badge bg-info text-dark">Rented</span>
+                                @elseif($product->status === 'rejected')
+                                    <span class="badge bg-danger">Rejected</span>
+                                @elseif($product->status === 'returned')
+                                    <span class="badge bg-primary">Returned</span>
                                 @else
-                                    <span class="badge bg-warning">Pending</span>
+                                    <span class="badge bg-secondary">{{ ucfirst($product->status) }}</span>
                                 @endif
                             </div>
                             
@@ -50,6 +74,10 @@
                             
                             @if($product->size)
                                 <p class="mb-1"><small><strong>Size:</strong> {{ $product->size }}</small></p>
+                            @endif
+
+                            @if($product->material)
+                                <p class="mb-1"><small><strong>Material:</strong> {{ $product->material }}</small></p>
                             @endif
                             
                             @if($product->color)

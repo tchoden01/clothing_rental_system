@@ -505,11 +505,26 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="{{ route('seller.categories.request') }}" class="sidebar-nav-link {{ request()->routeIs('seller.categories.request*') ? 'active' : '' }}">
+                        <i class="bi bi-tags"></i>
+                        <span>Category Requests</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a href="{{ route('seller.orders') }}" class="sidebar-nav-link {{ request()->routeIs('seller.orders*') ? 'active' : '' }}">
                         <i class="bi bi-receipt"></i>
                         <span>Orders</span>
                         @if(isset($pendingOrders) && $pendingOrders > 0)
                             <span class="sidebar-nav-badge">{{ $pendingOrders }}</span>
+                        @endif
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="{{ route('seller.notifications') }}" class="sidebar-nav-link {{ request()->routeIs('seller.notifications*') ? 'active' : '' }}">
+                        <i class="bi bi-bell"></i>
+                        <span>Notifications</span>
+                        @if(($sellerUnreadNotificationsCount ?? 0) > 0)
+                            <span class="sidebar-nav-badge">{{ $sellerUnreadNotificationsCount }}</span>
                         @endif
                     </a>
                 </li>

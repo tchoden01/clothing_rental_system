@@ -12,6 +12,12 @@ class Category extends Model
     protected $fillable = [
         'name',
         'description',
+        'seller_id',
+        'is_approved',
+    ];
+
+    protected $casts = [
+        'is_approved' => 'boolean',
     ];
 
     /**
@@ -20,5 +26,13 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Get the seller who submitted this category request.
+     */
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
     }
 }
