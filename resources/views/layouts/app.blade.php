@@ -17,6 +17,11 @@
             box-sizing: border-box;
         }
         
+        html,
+        body {
+            height: 100%;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333333;
@@ -26,8 +31,20 @@
             flex-direction: column;
         }
 
-        main {
-            flex: 1;
+        .app-shell {
+            flex: 1 0 auto;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-main {
+            flex: 1 0 auto;
+        }
+
+        footer {
+            margin-top: auto;
+            flex-shrink: 0;
         }
         
         /* Header Styles */
@@ -1042,6 +1059,7 @@
     @stack('styles')
 </head>
 <body>
+    <div class="app-shell">
     @unless(request()->routeIs('home'))
         <button type="button" class="back-arrow-btn" aria-label="Go back" title="Go back" onclick="goBackOrHome()">
             <i class="bi bi-arrow-left"></i>
@@ -1166,7 +1184,7 @@
     @endif
 
     <!-- Main Content -->
-    <main>
+    <main class="app-main">
         @yield('content')
     </main>
 
@@ -1193,6 +1211,7 @@
             </div>
         </div>
     </footer>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1204,6 +1223,16 @@
             }
             window.location.href = "{{ route('home') }}";
         }
+
+        // Force refresh when returning via browser back/forward cache.
+        window.addEventListener('pageshow', function (event) {
+            const navigationEntries = performance.getEntriesByType('navigation');
+            const isBackForward = navigationEntries.length > 0 && navigationEntries[0].type === 'back_forward';
+
+            if (event.persisted || isBackForward) {
+                window.location.reload();
+            }
+        });
     </script>
     
     @stack('scripts')

@@ -11,10 +11,23 @@ class Seller extends Model
 
     protected $fillable = [
         'user_id',
+        'full_name',
+        'email',
+        'phone_number',
+        'password',
         'shop_name',
+        'shop_description',
+        'location',
+        'cid_number',
+        'business_license',
+        'bank_name',
+        'account_number',
+        'account_holder_name',
         'contact_number',
         'address',
         'is_verified',
+        'status',
+        'rejection_reason',
     ];
 
     protected $casts = [

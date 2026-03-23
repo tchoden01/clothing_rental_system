@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
                     $cartBadgeCount = Cart::where('user_id', $user->id)->sum('quantity');
                 } elseif ($user->isAdmin()) {
                     $adminPendingNotificationsCount =
-                        Seller::where('is_verified', false)->count() +
+                        Seller::where('status', 'pending')->count() +
                         Product::where('status', 'pending')->count() +
                         Category::where('is_approved', false)->count();
                 } elseif ($user->isSeller()) {

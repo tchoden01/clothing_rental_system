@@ -32,7 +32,7 @@ class AdminController extends Controller
 
         $totalUsers = User::where('role', 'customer')->count();
         $totalSellers = Seller::count();
-        $pendingSellers = Seller::where('is_verified', false)->count();
+        $pendingSellers = Seller::where('status', 'pending')->count();
         $totalProducts = Product::count();
         $pendingProducts = Product::where('status', 'pending')->count();
         $totalOrders = Order::count();
@@ -46,7 +46,7 @@ class AdminController extends Controller
             ->sum('amount');
 
         $pendingSellerList = Seller::with('user')
-            ->where('is_verified', false)
+            ->where('status', 'pending')
             ->latest()
             ->take(5)
             ->get();
@@ -76,6 +76,13 @@ class AdminController extends Controller
     {
         $sellers = Seller::with('user')->orderBy('created_at', 'desc')->paginate(15);
         return view('admin.sellers.index', compact('sellers'));
+    }
+
+    // Show seller details
+    public function showSeller($id)
+    {
+        $seller = Seller::with('user')->findOrFail($id);
+        return view('admin.sellers.show', compact('seller'));
     }
 
     // List customers
@@ -130,7 +137,14 @@ class AdminController extends Controller
     public function verifySeller($id)
     {
         $seller = Seller::with('user')->findOrFail($id);
+
+        if ($seller->status !== 'pending') {
+            return back()->with('error', 'Only pending sellers can be approved.');
+        }
+
         $seller->is_verified = true;
+        $seller->status = 'verified';
+        $seller->rejection_reason = null;
         $seller->save();
 
         if ($seller->user) {
@@ -146,18 +160,29 @@ class AdminController extends Controller
     }
 
     // Reject seller
-    public function rejectSeller($id)
+    public function rejectSeller(Request $request, $id)
     {
         $seller = Seller::with('user')->findOrFail($id);
+
+        if ($seller->status !== 'pending') {
+            return back()->with('error', 'Only pending sellers can be rejected.');
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
         $seller->is_verified = false;
+        $seller->status = 'rejected';
+        $seller->rejection_reason = $validated['reason'];
         $seller->save();
 
         if ($seller->user) {
             $this->notifySellerIfUnique($seller->user,
                 'Seller account update',
-                'Your seller verification is still pending or was not approved. Please review your seller details and try again.',
-                route('seller.dashboard'),
-                'Open seller dashboard'
+                'Your seller application was not approved. Please review the rejection reason and resubmit your details.',
+                route('seller.application.rejected'),
+                'Review application status'
             );
         }
 
@@ -369,7 +394,7 @@ class AdminController extends Controller
     public function notifications()
     {
         $pendingSellerRequests = Seller::with('user')
-            ->where('is_verified', false)
+            ->where('status', 'pending')
             ->latest()
             ->take(8)
             ->get();

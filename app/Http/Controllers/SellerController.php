@@ -27,6 +27,10 @@ class SellerController extends Controller
             return redirect()->route('home')->with('error', 'You are not registered as a seller.');
         }
 
+        if ($seller->status === 'rejected') {
+            return redirect()->route('seller.application.rejected');
+        }
+
         $products = Product::where('seller_id', $seller->id)->count();
         $approvedProducts = Product::where('seller_id', $seller->id)
             ->where('is_approved', true)
@@ -115,6 +119,96 @@ class SellerController extends Controller
         ));
     }
 
+    public function rejectedApplication()
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        if ($seller->status !== 'rejected') {
+            return redirect()->route('seller.dashboard');
+        }
+
+        return view('seller.application.rejected', compact('seller'));
+    }
+
+    public function editApplication()
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        if ($seller->status !== 'rejected') {
+            return redirect()->route('seller.dashboard')->with('info', 'Your application is not currently rejected.');
+        }
+
+        return view('seller.application.edit', compact('seller'));
+    }
+
+    public function resubmitApplication(Request $request)
+    {
+        $user = Auth::user();
+        $seller = $user->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        if ($seller->status !== 'rejected') {
+            return redirect()->route('seller.dashboard')->with('info', 'Your application is not currently rejected.');
+        }
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id . '|unique:sellers,email,' . $seller->id,
+            'shop_name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'cid_number' => 'required|string|max:100|unique:sellers,cid_number,' . $seller->id,
+            'business_license' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'bank_name' => 'required|string|max:255',
+            'account_number' => 'required|string|max:100',
+        ]);
+
+        if (!$seller->business_license && !$request->hasFile('business_license')) {
+            return back()->withErrors([
+                'business_license' => 'Business license is required.',
+            ])->withInput();
+        }
+
+        $businessLicensePath = $seller->business_license;
+        if ($request->hasFile('business_license')) {
+            $businessLicensePath = $request->file('business_license')->store('seller-licenses', 'public');
+        }
+
+        $user->update([
+            'name' => $validated['full_name'],
+            'email' => $validated['email'],
+            'address' => $validated['location'],
+        ]);
+
+        $seller->update([
+            'full_name' => $validated['full_name'],
+            'email' => $validated['email'],
+            'shop_name' => $validated['shop_name'],
+            'location' => $validated['location'],
+            'cid_number' => $validated['cid_number'],
+            'business_license' => $businessLicensePath,
+            'bank_name' => $validated['bank_name'],
+            'account_number' => $validated['account_number'],
+            'address' => $validated['location'],
+            'is_verified' => false,
+            'status' => 'pending',
+            'rejection_reason' => null,
+        ]);
+
+        return redirect()->route('seller.dashboard')
+            ->with('success', 'Application resubmitted successfully. Your status is now pending admin review.');
+    }
+
     // List seller products
     public function products()
     {
@@ -139,7 +233,7 @@ class SellerController extends Controller
     {
         $seller = Auth::user()->seller;
 
-        if (!$seller->is_verified) {
+        if ($seller->status !== 'verified') {
             return back()->with('error', 'Your account must be verified before adding products.');
         }
 
@@ -358,7 +452,7 @@ class SellerController extends Controller
             return redirect()->route('home')->with('error', 'You are not registered as a seller.');
         }
 
-        if (!$seller->is_verified) {
+        if ($seller->status !== 'verified') {
             return back()->with('error', 'Your account must be verified before requesting categories.');
         }
 

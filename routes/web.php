@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\SellerRegistrationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\OnboardingController;
@@ -46,8 +47,9 @@ Route::get('/register', [AuthController::class, 'showCustomerRegisterForm'])->na
 Route::post('/register', [AuthController::class, 'registerCustomer'])->name('register.post');
 
 // Seller registration
-Route::get('/register/seller', [AuthController::class, 'showSellerRegisterForm'])->name('register.seller');
-Route::post('/register/seller', [AuthController::class, 'registerSeller'])->name('register.seller.post');
+Route::get('/register/seller', [SellerRegistrationController::class, 'create'])->name('register.seller');
+Route::post('/register/seller', [SellerRegistrationController::class, 'store'])->name('register.seller.post');
+Route::get('/register/seller/success', [SellerRegistrationController::class, 'success'])->name('register.seller.success');
 
 // Customer routes (authenticated)
 Route::middleware(['auth'])->group(function () {
@@ -77,6 +79,9 @@ Route::middleware(['auth'])->group(function () {
 // Seller routes (authenticated + seller role)
 Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function () {
     Route::get('/dashboard', [SellerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/application/rejected', [SellerController::class, 'rejectedApplication'])->name('application.rejected');
+    Route::get('/application/edit', [SellerController::class, 'editApplication'])->name('application.edit');
+    Route::put('/application/resubmit', [SellerController::class, 'resubmitApplication'])->name('application.resubmit');
     
     // Products
     Route::get('/products', [SellerController::class, 'products'])->name('products');
@@ -112,6 +117,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Sellers
     Route::get('/sellers', [AdminController::class, 'sellers'])->name('sellers');
+    Route::get('/sellers/{id}', [AdminController::class, 'showSeller'])->name('sellers.show');
     Route::post('/sellers/{id}/verify', [AdminController::class, 'verifySeller'])->name('sellers.verify');
     Route::post('/sellers/{id}/reject', [AdminController::class, 'rejectSeller'])->name('sellers.reject');
     
