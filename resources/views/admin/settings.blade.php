@@ -134,6 +134,23 @@
                     <div class="col-md-4 d-grid">
                         <button type="submit" class="btn btn-primary">Save Settings</button>
                     </div>
+
+                    <div class="col-12">
+                        <div class="form-check mt-1">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                value="1"
+                                id="refund_platform_fee"
+                                name="refund_platform_fee"
+                                {{ old('refund_platform_fee', $refundPlatformFee ? '1' : '0') === '1' ? 'checked' : '' }}
+                            >
+                            <label class="form-check-label" for="refund_platform_fee">
+                                Refund platform fee on cancellation
+                            </label>
+                            <div class="form-text">When unchecked, platform fee stays non-refundable and is excluded from refund amount.</div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

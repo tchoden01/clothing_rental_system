@@ -74,7 +74,9 @@
                                 <td>{{ $seller->user->email }}</td>
                                 <td>{{ $seller->shop_name }}</td>
                                 <td>{{ $seller->business_license ?? 'N/A' }}</td>
-                                <td>{{ $seller->phone_number ?? $seller->contact_number ?? 'N/A' }}</td>
+                <div class="app-pagination">
+                    {{ $sellers->links('pagination::tailwind') }}
+                </div>
                                 <td>
                                     @if($seller->status === 'verified')
                                         <span class="badge bg-success">Verified</span>
@@ -129,7 +131,9 @@
             </div>
 
             <div class="mt-4">
-                {{ $sellers->links() }}
+                <div class="app-pagination">
+                    {{ $sellers->links('pagination::tailwind') }}
+                </div>
             </div>
         </div>
     </div>

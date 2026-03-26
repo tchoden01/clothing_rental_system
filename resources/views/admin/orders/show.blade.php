@@ -145,9 +145,62 @@
                         <p class="mb-1"><strong>Method:</strong> {{ ucfirst($order->payment->payment_method) }}</p>
                         <p class="mb-0"><strong>Transaction ID:</strong> {{ $order->payment->transaction_id ?? 'N/A' }}</p>
                     @endif
+                    @if($order->status === 'cancelled')
+                        <hr>
+                        <p class="mb-1"><strong>Refund %:</strong> {{ number_format((float) $order->refund_percentage, 2) }}%</p>
+                        <p class="mb-1"><strong>Refund Amount:</strong> Nu. {{ number_format((float) $order->refund_amount, 2) }}</p>
+                        <p class="mb-1"><strong>Refund Base:</strong> Nu. {{ number_format((float) $order->refundable_base_amount, 2) }}</p>
+                        <p class="mb-1"><strong>Platform Fee:</strong> Nu. {{ number_format((float) $order->platform_fee_amount, 2) }}</p>
+                        <p class="mb-1"><strong>Platform Fee Refunded:</strong> {{ $order->platform_fee_refunded ? 'Yes' : 'No' }}</p>
+                        @if($order->is_refund_overridden)
+                            <p class="mb-1"><strong>Override By:</strong> {{ optional($order->refundOverriddenBy)->name ?? 'Admin' }}</p>
+                            <p class="mb-1"><strong>Override At:</strong> {{ optional($order->refund_override_at)->format('d M Y, h:i A') ?? 'N/A' }}</p>
+                            @if($order->refund_override_note)
+                                <p class="mb-0"><strong>Override Note:</strong><br><small class="text-muted">{{ $order->refund_override_note }}</small></p>
+                            @endif
+                        @endif
+                    @endif
                     <p class="mb-0 mt-2"><small class="text-muted">Order Date: {{ $order->created_at->format('d M Y, h:i A') }}</small></p>
                 </div>
             </div>
+
+            @if($order->status === 'cancelled')
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Manual Refund Override</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('admin.orders.refund-override', $order->id) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="refund_percentage" class="form-label">Refund Percentage (%)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    class="form-control"
+                                    id="refund_percentage"
+                                    name="refund_percentage"
+                                    value="{{ old('refund_percentage', number_format((float) $order->refund_percentage, 2, '.', '')) }}"
+                                    required
+                                >
+                            </div>
+                            <div class="mb-3">
+                                <label for="refund_override_note" class="form-label">Reason (Optional)</label>
+                                <textarea
+                                    class="form-control"
+                                    id="refund_override_note"
+                                    name="refund_override_note"
+                                    rows="3"
+                                    placeholder="Why are you overriding this refund?"
+                                >{{ old('refund_override_note') }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary w-100">Apply Refund Override</button>
+                        </form>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

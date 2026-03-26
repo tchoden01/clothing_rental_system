@@ -42,9 +42,46 @@
             flex: 1 0 auto;
         }
 
-        footer {
+        footer.site-footer {
             margin-top: auto;
             flex-shrink: 0;
+        }
+
+        .app-pagination {
+            margin-top: 1rem;
+        }
+
+        .app-pagination nav[role="navigation"] > div:first-child {
+            display: none;
+        }
+
+        .app-pagination nav[role="navigation"] > div:last-child {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .app-pagination nav[role="navigation"] span,
+        .app-pagination nav[role="navigation"] a {
+            font-size: 0.82rem;
+            min-width: 2rem;
+            min-height: 2rem;
+            padding: 0.35rem 0.55rem;
+            line-height: 1.1;
+        }
+
+        .app-pagination nav[role="navigation"] svg {
+            width: 0.9rem;
+            height: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            .app-pagination nav[role="navigation"] span,
+            .app-pagination nav[role="navigation"] a {
+                min-width: 1.85rem;
+                min-height: 1.85rem;
+                padding: 0.3rem 0.45rem;
+            }
         }
         
         /* Header Styles */
@@ -844,58 +881,168 @@
         }
         
         /* Footer */
-        footer {
+        .site-footer {
             background-color: #800020;
-            color: white;
+            color: #fff;
+        }
+
+        .site-footer .footer-logo span:first-child {
+            color: #f5c77e;
+        }
+
+        .site-footer .social-links a {
+            color: #fff;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .site-footer .social-links a:hover {
+            color: #f5c77e;
+        }
+
+        .site-footer--default {
             padding: 3rem 0 1.5rem;
         }
-        
-        .footer-content {
+
+        .site-footer--default .footer-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
         }
-        
-        .footer-logo {
+
+        .site-footer--default .footer-logo {
             font-size: 1.3rem;
             font-weight: 600;
         }
-        
-        .footer-logo span:first-child {
-            color: #A0003A;
-        }
-        
-        .social-links {
+
+        .site-footer--default .social-links {
             display: flex;
             gap: 1rem;
         }
-        
-        .social-links a {
-            color: white;
+
+        .site-footer--default .social-links a {
             font-size: 1.2rem;
-            transition: color 0.3s ease;
         }
-        
-        .social-links a:hover {
-            color: #f5c77e;
-        }
-        
-        .footer-contact {
+
+        .site-footer--default .footer-contact {
             border-top: 1px solid rgba(255,255,255,0.2);
             padding-top: 1.5rem;
             display: flex;
             gap: 2rem;
             font-size: 0.9rem;
         }
-        
-        .footer-bottom {
+
+        .site-footer--default .footer-bottom {
             text-align: center;
             margin-top: 2rem;
             padding-top: 1.5rem;
             border-top: 1px solid rgba(255,255,255,0.2);
             font-size: 0.85rem;
             opacity: 0.8;
+        }
+
+        .site-footer--compact {
+            padding: 0.85rem 0 0.6rem;
+        }
+
+        .site-footer--compact .footer-main-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .site-footer--compact .footer-logo {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .site-footer--compact .footer-contact {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.79rem;
+            line-height: 1.2;
+            margin: 0;
+            white-space: nowrap;
+            opacity: 0.95;
+        }
+
+        .site-footer--compact .footer-contact i {
+            font-size: 0.78rem;
+            margin-right: 0.2rem;
+        }
+
+        .site-footer--compact .social-links {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .site-footer--compact .social-links a {
+            width: 1.6rem;
+            height: 1.6rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            border-radius: 999px;
+            font-size: 0.8rem;
+        }
+
+        .site-footer--compact .footer-bottom {
+            text-align: center;
+            margin-top: 0.55rem;
+            padding-top: 0.45rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.72rem;
+            line-height: 1.2;
+            opacity: 0.84;
+        }
+
+        @media (max-width: 992px) {
+            .site-footer--compact {
+                padding: 0.8rem 0 0.55rem;
+            }
+
+            .site-footer--compact .footer-main-row {
+                justify-content: center;
+                gap: 0.7rem 1rem;
+            }
+
+            .site-footer--compact .footer-contact {
+                flex-wrap: wrap;
+                justify-content: center;
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .site-footer--compact .footer-main-row {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .site-footer--compact .footer-logo {
+                font-size: 0.96rem;
+            }
+
+            .site-footer--compact .footer-contact {
+                font-size: 0.76rem;
+                gap: 0.45rem 0.8rem;
+            }
+
+            .site-footer--compact .footer-bottom {
+                margin-top: 0.45rem;
+                padding-top: 0.4rem;
+                font-size: 0.7rem;
+            }
         }
         
         /* Dropdown Menu Styles */
@@ -1189,28 +1336,53 @@
     </main>
 
     <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span>Ren</span><span>tique</span>
+    @if(request()->routeIs('home'))
+        <footer class="site-footer site-footer--default">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-logo">
+                        <span>Ren</span><span>tique</span>
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
+                    </div>
                 </div>
-                <div class="social-links">
-                    <a href="#"><i class="bi bi-facebook"></i></a>
-                    <a href="#"><i class="bi bi-instagram"></i></a>
-                    <a href="#"><i class="bi bi-twitter"></i></a>
-                    <a href="#"><i class="bi bi-youtube"></i></a>
+                <div class="footer-contact">
+                    <div><i class="bi bi-telephone"></i> +975-421-7898</div>
+                    <div><i class="bi bi-envelope"></i> info@rentique.bt</div>
+                </div>
+                <div class="footer-bottom">
+                    &copy; {{ date('Y') }} Rentique. All rights reserved.
                 </div>
             </div>
-            <div class="footer-contact">
-                <div><i class="bi bi-telephone"></i> +975-421-7898</div>
-                <div><i class="bi bi-envelope"></i> info@rentique.bt</div>
+        </footer>
+    @else
+        <footer class="site-footer site-footer--compact">
+            <div class="container">
+                <div class="footer-main-row">
+                    <div class="footer-logo">
+                        <span>Ren</span><span>tique</span>
+                    </div>
+                    <div class="footer-contact">
+                        <span><i class="bi bi-telephone"></i> +975-421-7898</span>
+                        <span><i class="bi bi-envelope"></i> info@rentique.bt</span>
+                    </div>
+                    <div class="social-links" aria-label="Rentique social links">
+                        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="bi bi-twitter"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    &copy; {{ date('Y') }} Rentique. All rights reserved.
+                </div>
             </div>
-            <div class="footer-bottom">
-                &copy; {{ date('Y') }} Rentique. All rights reserved.
-            </div>
-        </div>
-    </footer>
+        </footer>
+    @endif
     </div>
 
     <!-- Bootstrap JS -->

@@ -11,8 +11,19 @@
         return $item->rental_price * $item->quantity * $days;
     });
 
-    $canCancelOrder = in_array($order->status, ['pending', 'confirmed'], true)
-        && \Carbon\Carbon::today()->lt(\Carbon\Carbon::parse($order->rental_start_date));
+    $refundPreview = $refundPreview ?? [
+        'can_cancel' => false,
+        'refund_percentage' => 0,
+        'refund_amount' => 0,
+        'hours_before_start' => 0,
+        'platform_fee_refunded' => false,
+        'platform_fee_amount' => 0,
+        'reason' => null,
+    ];
+
+    $refundPlatformFee = filter_var(\App\Models\PlatformSetting::get('refund_platform_fee', '0'), FILTER_VALIDATE_BOOLEAN);
+
+    $canCancelOrder = in_array($order->status, ['pending', 'confirmed'], true) && ($refundPreview['can_cancel'] ?? false);
 @endphp
 <div class="container order-details-page">
     <div class="row mb-4">
@@ -101,12 +112,25 @@
                     </div>
                     
                     @if($canCancelOrder)
-                        <form action="{{ route('orders.cancel', $order->id) }}" method="POST" class="cancel-order-form">
+                        <form
+                            action="{{ route('orders.cancel', $order->id) }}"
+                            method="POST"
+                            class="cancel-order-form"
+                            data-refund-amount="{{ number_format((float) ($refundPreview['refund_amount'] ?? 0), 2, '.', '') }}"
+                            data-refund-percentage="{{ number_format((float) ($refundPreview['refund_percentage'] ?? 0), 2, '.', '') }}"
+                            data-hours-before="{{ (int) ($refundPreview['hours_before_start'] ?? 0) }}"
+                            data-platform-fee-refunded="{{ !empty($refundPreview['platform_fee_refunded']) ? '1' : '0' }}"
+                            data-platform-fee="{{ number_format((float) ($refundPreview['platform_fee_amount'] ?? 0), 2, '.', '') }}"
+                        >
                             @csrf
                             <button type="submit" class="btn btn-outline-danger w-100">
                                 <i class="bi bi-x-circle"></i> Cancel Order
                             </button>
                         </form>
+                    @elseif(in_array($order->status, ['pending', 'confirmed'], true) && !empty($refundPreview['reason']))
+                        <div class="alert alert-warning mb-0">
+                            <small><i class="bi bi-info-circle"></i> {{ $refundPreview['reason'] }}</small>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -165,6 +189,24 @@
                 </div>
             </div>
 
+            <div class="card mb-4 border-warning-subtle">
+                <div class="card-header bg-warning-subtle">
+                    <h5 class="mb-0">Cancellation Policy</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-2 ps-3">
+                        <li>Cancel before rental start date only.</li>
+                        <li>48 or more hours before start: 100% refund.</li>
+                        <li>24 to less than 48 hours before start: 50% refund.</li>
+                        <li>Less than 24 hours before start: 0% refund.</li>
+                        <li>On or after start date: cancellation is not allowed.</li>
+                    </ul>
+                    <small class="text-muted">
+                        Platform fee is {{ $refundPlatformFee ? 'refundable' : 'non-refundable' }} as configured by admin.
+                    </small>
+                </div>
+            </div>
+
             <!-- Customer Information -->
             <div class="card customer-info-card">
                 <div class="card-header">
@@ -216,9 +258,17 @@
         cancelForm.addEventListener('submit', function (event) {
             event.preventDefault();
 
+            const refundAmount = cancelForm.dataset.refundAmount || '0.00';
+            const refundPercentage = cancelForm.dataset.refundPercentage || '0';
+            const hoursBefore = cancelForm.dataset.hoursBefore || '0';
+            const platformFee = cancelForm.dataset.platformFee || '0.00';
+            const platformFeeRefunded = cancelForm.dataset.platformFeeRefunded === '1';
+
             Swal.fire({
                 title: 'Are you sure?',
-                text: 'Are you sure you want to cancel this order?',
+                html: 'Your estimated refund is <strong>Nu. ' + refundAmount + '</strong><br>'
+                    + '(' + refundPercentage + '% policy rate, ' + hoursBefore + ' hours before start).'
+                    + (platformFeeRefunded ? '' : '<br><small class="text-muted">Platform fee (Nu. ' + platformFee + ') is non-refundable.</small>'),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, Cancel Order',

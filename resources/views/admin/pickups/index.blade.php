@@ -64,8 +64,8 @@
         </div>
     </div>
 
-    <div class="mt-3">
-        {{ $pickups->links() }}
+    <div class="mt-3 app-pagination">
+        {{ $pickups->links('pagination::tailwind') }}
     </div>
 </div>
 @endsection

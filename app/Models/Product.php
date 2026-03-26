@@ -12,6 +12,9 @@ class Product extends Model
     protected $fillable = [
         'seller_id',
         'category_id',
+        'for',
+        'gender',
+        'kid_type',
         'name',
         'size',
         'material',
@@ -46,6 +49,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the occasions tagged for this product.
+     */
+    public function occasions()
+    {
+        return $this->belongsToMany(Occasion::class, 'product_occasion');
     }
 
     /**

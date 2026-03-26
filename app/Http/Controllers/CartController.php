@@ -69,27 +69,38 @@ class CartController extends Controller
             return back()->with('error', 'This product is not available for rental right now.');
         }
 
-        // Check if product is available
-        if ($product->quantity < $validated['quantity']) {
-            return back()->with('error', 'Insufficient quantity available.');
-        }
-
         // Check if item already in cart
         $cartItem = Cart::where('user_id', Auth::id())
             ->where('product_id', $validated['product_id'])
             ->first();
 
+        $requestedQuantity = (int) $validated['quantity'];
+        $currentCartQuantity = $cartItem ? (int) $cartItem->quantity : 0;
+        $newCartQuantity = $currentCartQuantity + $requestedQuantity;
+
+        // Ensure total requested quantity does not exceed current stock.
+        if ($newCartQuantity > (int) $product->quantity) {
+            return back()->with(
+                'error',
+                'Only ' . $product->quantity . ' item(s) available for "' . $product->name . '".'
+            );
+        }
+
         if ($cartItem) {
-            $cartItem->quantity += $validated['quantity'];
+            $cartItem->quantity = $newCartQuantity;
             $cartItem->save();
         } else {
             Cart::create([
                 'user_id' => Auth::id(),
                 'product_id' => $validated['product_id'],
-                'quantity' => $validated['quantity'],
+                'quantity' => $requestedQuantity,
                 'rental_start_date' => $validated['rental_start_date'] ?? null,
                 'rental_end_date' => $validated['rental_end_date'] ?? null,
             ]);
+        }
+
+        if ($request->boolean('rent_now')) {
+            return redirect()->route('checkout')->with('success', 'Product added. Continue with checkout.');
         }
 
         return redirect()->route('cart.index')->with('success', 'Product added to cart!');

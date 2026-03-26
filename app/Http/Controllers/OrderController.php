@@ -150,8 +150,12 @@ class OrderController extends Controller
 
             return redirect()->route('orders.show', $order->id)->with('success', 'Order placed successfully!');
 
+        } catch (\RuntimeException $e) {
+            DB::rollback();
+            return back()->with('error', $e->getMessage());
         } catch (\Exception $e) {
             DB::rollback();
+            report($e);
             return back()->with('error', 'Failed to place order. Please try again.');
         }
     }
@@ -164,7 +168,12 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('orders.index', compact('orders'));
+        $refundPreviews = [];
+        foreach ($orders as $order) {
+            $refundPreviews[$order->id] = $this->calculateRefundDetails($order);
+        }
+
+        return view('orders.index', compact('orders', 'refundPreviews'));
     }
 
     // Show single order
@@ -174,7 +183,9 @@ class OrderController extends Controller
             ->where('user_id', Auth::id())
             ->findOrFail($id);
 
-        return view('orders.show', compact('order'));
+        $refundPreview = $this->calculateRefundDetails($order);
+
+        return view('orders.show', compact('order', 'refundPreview'));
     }
 
     // Cancel order
@@ -188,25 +199,38 @@ class OrderController extends Controller
             return back()->with('error', 'Cannot cancel this order.');
         }
 
-        if (!Carbon::today()->lt(Carbon::parse($order->rental_start_date))) {
-            return back()->with('error', 'This order can only be cancelled before the rental period starts.');
+        $refund = $this->calculateRefundDetails($order);
+        if (!$refund['can_cancel']) {
+            return back()->with('error', $refund['reason'] ?: 'Cancellation is not allowed after rental start date.');
         }
 
         DB::beginTransaction();
 
         try {
             $order->status = 'cancelled';
+            $order->cancelled_at = now();
+            $order->cancelled_by = Auth::id();
+            $order->cancellation_hours_before_start = $refund['hours_before_start'];
+            $order->refundable_base_amount = $refund['refundable_base_amount'];
+            $order->refund_percentage = $refund['refund_percentage'];
+            $order->refund_amount = $refund['refund_amount'];
+            $order->platform_fee_amount = $refund['platform_fee_amount'];
+            $order->platform_fee_refunded = $refund['platform_fee_refunded'];
+            $order->refund_processed_at = $order->payment_status === 'paid' ? now() : null;
 
-            if ($order->payment_status === 'paid') {
+            if ($order->payment_status === 'paid' && (float) $refund['refund_amount'] > 0) {
                 $order->payment_status = 'refunded';
-
-                if ($order->payment) {
-                    $order->payment->status = 'refunded';
-                    $order->payment->save();
-                }
             }
 
             $order->save();
+
+            if ($order->payment) {
+                if ($order->payment_status === 'refunded') {
+                    $order->payment->status = 'refunded';
+                }
+
+                $order->payment->save();
+            }
 
             foreach ($order->orderItems as $item) {
                 if ($item->product) {
@@ -235,11 +259,59 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Order cancelled successfully.');
+            return back()->with(
+                'success',
+                'Order cancelled successfully. Refund: Nu. ' . number_format((float) $refund['refund_amount'], 2)
+            );
         } catch (\Exception $e) {
             DB::rollBack();
+            report($e);
             return back()->with('error', 'Unable to cancel order right now. Please try again.');
         }
+    }
+
+    private function calculateRefundDetails(Order $order, ?Carbon $cancelAt = null, ?float $overridePercentage = null): array
+    {
+        $cancelAt = $cancelAt ?: now();
+        $rentalStartAt = Carbon::parse($order->rental_start_date)->startOfDay();
+        $hoursBeforeStart = (int) max($cancelAt->diffInHours($rentalStartAt, false), 0);
+        $canCancel = $cancelAt->copy()->startOfDay()->lt($rentalStartAt);
+
+        $refundPercentage = 0.0;
+        $reason = null;
+
+        if (!$canCancel) {
+            $reason = 'Cancellation is not allowed on or after the rental start date.';
+        } elseif ($overridePercentage !== null) {
+            $refundPercentage = min(max($overridePercentage, 0), 100);
+        } elseif ($hoursBeforeStart < 24) {
+            $refundPercentage = 0.0;
+        } elseif ($hoursBeforeStart < 48) {
+            $refundPercentage = 50.0;
+        } else {
+            $refundPercentage = 100.0;
+        }
+
+        $platformFeeAmount = (float) $order->platform_commission;
+        $refundPlatformFee = filter_var(PlatformSetting::get('refund_platform_fee', '0'), FILTER_VALIDATE_BOOLEAN);
+        $refundableBaseAmount = (float) $order->total_price;
+
+        if (!$refundPlatformFee) {
+            $refundableBaseAmount = max($refundableBaseAmount - $platformFeeAmount, 0);
+        }
+
+        $refundAmount = $canCancel ? round(($refundableBaseAmount * $refundPercentage) / 100, 2) : 0.0;
+
+        return [
+            'can_cancel' => $canCancel,
+            'reason' => $reason,
+            'hours_before_start' => $hoursBeforeStart,
+            'refund_percentage' => $refundPercentage,
+            'refund_amount' => $refundAmount,
+            'refundable_base_amount' => $refundableBaseAmount,
+            'platform_fee_amount' => $platformFeeAmount,
+            'platform_fee_refunded' => $refundPlatformFee,
+        ];
     }
 
     private function notifySellerIfUnique($user, string $title, string $message, string $actionUrl, string $actionLabel): void

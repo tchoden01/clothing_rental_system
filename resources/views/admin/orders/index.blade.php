@@ -73,7 +73,9 @@
 
         <div class="row mt-3">
             <div class="col-12">
-                {{ $orders->links() }}
+                    <div class="app-pagination w-100">
+                        {{ $orders->links('pagination::tailwind') }}
+                    </div>
             </div>
         </div>
     @else

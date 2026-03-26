@@ -14,8 +14,10 @@
         <div class="row">
             @foreach($orders as $order)
                 @php
+                    $refundPreview = $refundPreviews[$order->id] ?? null;
                     $canCancelOrder = in_array($order->status, ['pending', 'confirmed'], true)
-                        && \Carbon\Carbon::today()->lt(\Carbon\Carbon::parse($order->rental_start_date));
+                        && !empty($refundPreview)
+                        && !empty($refundPreview['can_cancel']);
                 @endphp
                 <div class="col-12 mb-4">
                     <div class="card">
@@ -87,9 +89,17 @@
                                         <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary w-100">
                                             <i class="bi bi-eye"></i> View Details
                                         </a>
-                                                                                @if($canCancelOrder)
-                                            <form action="{{ route('orders.cancel', $order->id) }}" method="POST" class="mt-2"
-                                                  onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                                        @if($canCancelOrder)
+                                            <form
+                                                action="{{ route('orders.cancel', $order->id) }}"
+                                                method="POST"
+                                                class="mt-2 cancel-order-form"
+                                                data-refund-amount="{{ number_format((float) ($refundPreview['refund_amount'] ?? 0), 2, '.', '') }}"
+                                                data-refund-percentage="{{ number_format((float) ($refundPreview['refund_percentage'] ?? 0), 2, '.', '') }}"
+                                                data-hours-before="{{ (int) ($refundPreview['hours_before_start'] ?? 0) }}"
+                                                data-platform-fee-refunded="{{ !empty($refundPreview['platform_fee_refunded']) ? '1' : '0' }}"
+                                                data-platform-fee="{{ number_format((float) ($refundPreview['platform_fee_amount'] ?? 0), 2, '.', '') }}"
+                                            >
                                                 @csrf
                                                 <button type="submit" class="btn btn-outline-danger w-100">
                                                     <i class="bi bi-x-circle"></i> Cancel Order
@@ -107,7 +117,9 @@
 
         <div class="row">
             <div class="col-12">
-                {{ $orders->links() }}
+                <div class="app-pagination">
+                    {{ $orders->links('pagination::tailwind') }}
+                </div>
             </div>
         </div>
     @else
@@ -118,3 +130,41 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cancelForms = document.querySelectorAll('.cancel-order-form');
+
+        cancelForms.forEach(function (cancelForm) {
+            cancelForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const refundAmount = cancelForm.dataset.refundAmount || '0.00';
+                const refundPercentage = cancelForm.dataset.refundPercentage || '0';
+                const hoursBefore = cancelForm.dataset.hoursBefore || '0';
+                const platformFee = cancelForm.dataset.platformFee || '0.00';
+                const platformFeeRefunded = cancelForm.dataset.platformFeeRefunded === '1';
+
+                Swal.fire({
+                    title: 'Cancel this order?',
+                    html: 'Your estimated refund is <strong>Nu. ' + refundAmount + '</strong><br>'
+                        + '(' + refundPercentage + '% policy rate, ' + hoursBefore + ' hours before start).'
+                        + (platformFeeRefunded ? '' : '<br><small class="text-muted">Platform fee (Nu. ' + platformFee + ') is non-refundable.</small>'),
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Cancel Order',
+                    cancelButtonText: 'No',
+                    confirmButtonColor: '#dc3545',
+                    reverseButtons: true
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        cancelForm.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Occasion;
 use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\Hash;
 
@@ -25,18 +26,82 @@ class DatabaseSeeder extends Seeder
             'address' => 'Admin Office',
         ]);
 
-        // Create Sample Categories
-        $categories = [
-            ['name' => 'Traditional Gho', 'description' => 'Traditional Bhutanese men\'s clothing'],
-            ['name' => 'Traditional Kira', 'description' => 'Traditional Bhutanese women\'s clothing'],
-            ['name' => 'Ceremonial Wear', 'description' => 'Special occasion traditional wear'],
-            ['name' => 'Wedding Attire', 'description' => 'Traditional wedding clothing'],
-            ['name' => 'Festival Wear', 'description' => 'Clothing for festivals and celebrations'],
-        ];
+        // Create category hierarchy where categories represent clothing type only.
+        $traditionalWear = Category::create([
+            'name' => 'Traditional Wear',
+            'description' => 'Traditional garments and heritage pieces.',
+        ]);
 
-        foreach ($categories as $category) {
-            Category::create($category);
-        }
+        $modernWear = Category::create([
+            'name' => 'Modern Wear',
+            'description' => 'Contemporary clothing styles.',
+        ]);
+
+        $accessories = Category::create([
+            'name' => 'Accessories',
+            'description' => 'Traditional accessories and add-ons.',
+        ]);
+
+        Category::insert([
+            [
+                'name' => 'Gho',
+                'parent_id' => $traditionalWear->id,
+                'description' => 'Traditional Bhutanese attire for men.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Kira',
+                'parent_id' => $traditionalWear->id,
+                'description' => 'Traditional Bhutanese attire for women.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Dresses',
+                'parent_id' => $modernWear->id,
+                'description' => 'Modern dresses in various styles.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Suits',
+                'parent_id' => $modernWear->id,
+                'description' => 'Formal and semi-formal suits.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Kera',
+                'parent_id' => $accessories->id,
+                'description' => 'Traditional belt accessory.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Kabney',
+                'parent_id' => $accessories->id,
+                'description' => 'Traditional ceremonial scarf for men.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Rachu',
+                'parent_id' => $accessories->id,
+                'description' => 'Traditional ceremonial scarf for women.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        // Create reusable occasion tags.
+        Occasion::insert([
+            ['name' => 'Wedding', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Festival', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Casual', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Formal', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Ceremonial', 'created_at' => now(), 'updated_at' => now()],
+        ]);
 
         // Create Platform Settings
         PlatformSetting::create([

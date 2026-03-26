@@ -326,9 +326,9 @@
                     <div class="dash-panel-body">
                         <ul class="summary-list">
                             <li><span>Total Revenue</span><strong>Nu. {{ number_format($totalRevenue, 0) }}</strong></li>
-                            <li><span>Platform Commission (20%)</span><strong>Nu. {{ number_format($totalCommission, 0) }}</strong></li>
+                            <li><span>Platform Commission ({{ number_format($commissionRate, 2) }}%)</span><strong>Nu. {{ number_format($platformCommission, 0) }}</strong></li>
                             <li><span>This Week</span><strong>Nu. {{ number_format($weeklyRevenue ?? 0, 0) }}</strong></li>
-                            <li><span>Seller Payout</span><strong>Nu. {{ number_format(max($totalRevenue - $totalCommission, 0), 0) }}</strong></li>
+                            <li><span>Seller Payout</span><strong>Nu. {{ number_format($sellerPayout, 0) }}</strong></li>
                             <li><span>Total Orders</span><strong>{{ $totalOrders }}</strong></li>
                             <li><span>Completed Orders</span><strong>{{ $completedOrders }}</strong></li>
                             <li><span>Pending Products</span><strong>{{ $pendingProducts }}</strong></li>

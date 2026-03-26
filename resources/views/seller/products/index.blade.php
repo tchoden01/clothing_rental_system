@@ -68,7 +68,9 @@
                             <p class="card-text text-muted small">{{ Str::limit($product->description, 60) }}</p>
                             
                             <div class="mb-2">
-                                <small class="text-muted">Category:</small> 
+                                <div class="app-pagination">
+                                    {{ $products->links('pagination::tailwind') }}
+                                </div>
                                 <span class="badge bg-primary">{{ $product->category->name }}</span>
                             </div>
                             
@@ -110,7 +112,9 @@
 
         <div class="row">
             <div class="col-12">
-                {{ $products->links() }}
+                <div class="app-pagination">
+                    {{ $products->links('pagination::tailwind') }}
+                </div>
             </div>
         </div>
     @else

@@ -20,6 +20,19 @@ class Order extends Model
         'rental_end_date',
         'status',
         'payment_status',
+        'cancelled_at',
+        'cancelled_by',
+        'cancellation_hours_before_start',
+        'refundable_base_amount',
+        'refund_percentage',
+        'refund_amount',
+        'platform_fee_amount',
+        'platform_fee_refunded',
+        'refund_processed_at',
+        'is_refund_overridden',
+        'refund_overridden_by',
+        'refund_override_at',
+        'refund_override_note',
     ];
 
     protected $casts = [
@@ -27,6 +40,16 @@ class Order extends Model
         'platform_commission' => 'decimal:2',
         'rental_start_date' => 'date',
         'rental_end_date' => 'date',
+        'cancelled_at' => 'datetime',
+        'cancellation_hours_before_start' => 'integer',
+        'refundable_base_amount' => 'decimal:2',
+        'refund_percentage' => 'decimal:2',
+        'refund_amount' => 'decimal:2',
+        'platform_fee_amount' => 'decimal:2',
+        'platform_fee_refunded' => 'boolean',
+        'refund_processed_at' => 'datetime',
+        'is_refund_overridden' => 'boolean',
+        'refund_override_at' => 'datetime',
     ];
 
     /**
@@ -35,6 +58,22 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * User who cancelled the order.
+     */
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /**
+     * Admin who overrode refund policy.
+     */
+    public function refundOverriddenBy()
+    {
+        return $this->belongsTo(User::class, 'refund_overridden_by');
     }
 
     /**

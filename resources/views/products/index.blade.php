@@ -154,6 +154,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
     }
 
     .product-image-wrap img {
@@ -161,6 +162,22 @@
         height: 100%;
         object-fit: contain;
         object-position: center center;
+    }
+
+    .product-image-wrap.is-unavailable img {
+        filter: grayscale(1) brightness(0.75);
+    }
+
+    .availability-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(32, 32, 32, 0.35);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        letter-spacing: 0.02em;
     }
 
     .product-card-body {
@@ -176,6 +193,27 @@
         font-size: 0.74rem;
         font-weight: 600;
         margin-bottom: 0.45rem;
+    }
+
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.58rem;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        margin-left: 0.35rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .availability-badge.available {
+        background: #d8f3df;
+        color: #1f6a37;
+    }
+
+    .availability-badge.rented {
+        background: #ffe6c7;
+        color: #945b13;
     }
 
     .product-name {
@@ -254,12 +292,24 @@
     $selectedCategories = array_map('strval', (array) request('category', []));
     $selectedSizes = array_map('strval', (array) request('size', []));
     $selectedColors = array_map('strval', (array) request('color', []));
+    $selectedFor = array_map('strval', (array) request('for', []));
     $selectedOccasions = array_map('strval', (array) request('occasion', []));
     $selectedSort = request('sort', 'newest');
 
     $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
     $colors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Multi-color', 'Pink', 'Mix'];
+    $forOptions = [
+        'men' => 'Men',
+        'women' => 'Women',
+        'kids' => 'Kids',
+        'unisex' => 'Unisex',
+    ];
     $occasions = ['Wedding', 'Festival', 'Ceremonial', 'Casual', 'Formal'];
+    $leafCategories = $categories->flatMap(function ($parentCategory) {
+        return $parentCategory->children->count() > 0
+            ? $parentCategory->children
+            : collect([$parentCategory]);
+    });
 @endphp
 
 <div class="container-fluid explore-page">
@@ -271,7 +321,7 @@
 
             <section class="chip-row">
                 <button type="button" class="quick-chip {{ empty($selectedCategories) ? 'active' : '' }}" data-clear="category">All</button>
-                @foreach($categories as $category)
+                @foreach($leafCategories as $category)
                     <button
                         type="button"
                         class="quick-chip {{ in_array((string) $category->id, $selectedCategories, true) ? 'active' : '' }}"
@@ -296,11 +346,23 @@
                             <i class="bi bi-chevron-down" id="category-icon"></i>
                         </button>
                         <div class="filter-section-content show" id="category-content">
-                            @foreach($categories as $category)
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category[]" value="{{ $category->id }}" {{ in_array((string) $category->id, $selectedCategories, true) ? 'checked' : '' }} onchange="applyFilter()">
-                                    <span>{{ $category->name }}</span>
-                                </label>
+                            @foreach($categories as $parentCategory)
+                                <div class="mb-2">
+                                    <div class="small text-muted fw-semibold mb-1">{{ $parentCategory->name }}</div>
+                                    @if($parentCategory->children->count() > 0)
+                                        @foreach($parentCategory->children as $childCategory)
+                                            <label class="filter-option ps-2">
+                                                <input type="checkbox" name="category[]" value="{{ $childCategory->id }}" {{ in_array((string) $childCategory->id, $selectedCategories, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                                <span>{{ $childCategory->name }}</span>
+                                            </label>
+                                        @endforeach
+                                    @else
+                                        <label class="filter-option ps-2">
+                                            <input type="checkbox" name="category[]" value="{{ $parentCategory->id }}" {{ in_array((string) $parentCategory->id, $selectedCategories, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                            <span>{{ $parentCategory->name }}</span>
+                                        </label>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
                     </section>
@@ -330,6 +392,21 @@
                                 <label class="filter-option">
                                     <input type="checkbox" name="color[]" value="{{ $color }}" {{ in_array((string) $color, $selectedColors, true) ? 'checked' : '' }} onchange="applyFilter()">
                                     <span>{{ $color }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <section class="filter-section">
+                        <button type="button" class="filter-section-toggle" data-filter-target="for-content" data-filter-icon="for-icon">
+                            <span>For</span>
+                            <i class="bi bi-chevron-down" id="for-icon"></i>
+                        </button>
+                        <div class="filter-section-content show" id="for-content">
+                            @foreach($forOptions as $forValue => $forLabel)
+                                <label class="filter-option">
+                                    <input type="checkbox" name="for[]" value="{{ $forValue }}" {{ in_array((string) $forValue, $selectedFor, true) ? 'checked' : '' }} onchange="applyFilter()">
+                                    <span>{{ $forLabel }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -370,7 +447,7 @@
                         @forelse($products as $product)
                             <div class="col-xl-4 col-md-6">
                                 <article class="product-card">
-                                    <div class="product-image-wrap">
+                                    <div class="product-image-wrap {{ !$product->is_rentable_now ? 'is-unavailable' : '' }}">
                                         @if($product->images && count($product->images) > 0)
                                             <img src="{{ asset('storage/' . $product->images[0]) }}" alt="{{ $product->name }}">
                                         @else
@@ -378,16 +455,37 @@
                                                 <i class="bi bi-image" style="font-size: 2.8rem; color: #9f968a;"></i>
                                             </div>
                                         @endif
+
+                                        @if(!$product->is_rentable_now)
+                                            <div class="availability-overlay">Currently Rented</div>
+                                        @endif
                                     </div>
                                     <div class="product-card-body">
                                         <span class="product-category">{{ $product->category->name }}</span>
+                                        @if($product->is_rentable_now)
+                                            <span class="availability-badge available">Available</span>
+                                        @else
+                                            <span class="availability-badge rented">Currently Rented</span>
+                                        @endif
                                         <h3 class="product-name">{{ $product->name }}</h3>
                                         <p class="product-desc">{{ Str::limit($product->description, 68) }}</p>
+                                        @if(!$product->is_rentable_now && $product->return_date)
+                                            <p class="product-meta"><strong>Returns:</strong> {{ $product->return_date->format('d M Y') }}</p>
+                                        @endif
                                         @if($product->size)
                                             <p class="product-meta"><strong>Size:</strong> {{ $product->size }}</p>
                                         @endif
                                         @if($product->material)
                                             <p class="product-meta"><strong>Material:</strong> {{ $product->material }}</p>
+                                        @endif
+                                        @if(!empty($product->gender))
+                                            <p class="product-meta">
+                                                <strong>For:</strong>
+                                                {{ ucfirst($product->gender) }}
+                                                @if($product->gender === 'kids' && !empty($product->kid_type))
+                                                    ({{ ucfirst($product->kid_type) }})
+                                                @endif
+                                            </p>
                                         @endif
                                         @if($product->color)
                                             <p class="product-meta"><strong>Color:</strong> {{ $product->color }}</p>
@@ -409,8 +507,8 @@
                         @endforelse
                     </div>
 
-                    <div class="mt-4">
-                        {{ $products->appends(request()->query())->links() }}
+                    <div class="mt-4 app-pagination">
+                        {{ $products->appends(request()->query())->links('pagination::tailwind') }}
                     </div>
                 </section>
             </div>

@@ -131,6 +131,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/orders/{id}', [AdminController::class, 'showOrder'])->name('orders.show');
     Route::post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus'])->name('orders.status');
+    Route::post('/orders/{id}/refund-override', [AdminController::class, 'overrideOrderRefund'])->name('orders.refund-override');
 
     // Pickup Management
     Route::get('/pickups', [AdminController::class, 'pickups'])->name('pickups');
@@ -139,13 +140,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Categories
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/categories/create', [AdminController::class, 'createCategory'])->name('categories.create');
+    Route::get('/categories/{id}/edit', [AdminController::class, 'editCategory'])->name('categories.edit');
     Route::post('/categories', [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::put('/categories/{id}', [AdminController::class, 'updateCategory'])->name('categories.update');
     Route::post('/categories/{id}/approve', [AdminController::class, 'approveCategory'])->name('categories.approve');
     Route::post('/categories/{id}/reject', [AdminController::class, 'rejectCategory'])->name('categories.reject');
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
     
     // Settings
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
+    Route::get('/payments', [AdminController::class, 'paymentsReport'])->name('payments');
+    Route::get('/commission-reports', [AdminController::class, 'commissionReports'])->name('commission-reports');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 });

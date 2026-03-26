@@ -208,10 +208,10 @@
                     <img src="{{ asset('images/kishuthara.png') }}" alt="Kishuthara collection">
                 </div>
                 <div class="carousel-item">
-                    <img src="{{ asset('images/promdress3.jpg') }}" alt="Prom dress highlight">
+                    <img src="{{ asset('images/gho3.png') }}" alt="Prom dress highlight">
                 </div>
                 <div class="carousel-item">
-                    <img src="{{ asset('images/weddingdress.jpg') }}" alt="Wedding dress highlight">
+                    <img src="{{ asset('images/wedding gho.png') }}" alt="Wedding dress highlight">
                 </div>
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">

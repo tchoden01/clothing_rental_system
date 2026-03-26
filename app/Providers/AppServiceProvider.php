@@ -29,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
             $cartBadgeCount = 0;
             $adminPendingNotificationsCount = 0;
             $sellerUnreadNotificationsCount = 0;
+            $pendingSellersBadgeCount = 0;
+            $pendingItemApprovalsBadgeCount = 0;
 
             if (Auth::check()) {
                 $user = Auth::user();
@@ -36,9 +38,11 @@ class AppServiceProvider extends ServiceProvider
                 if ($user->isCustomer()) {
                     $cartBadgeCount = Cart::where('user_id', $user->id)->sum('quantity');
                 } elseif ($user->isAdmin()) {
+                    $pendingSellersBadgeCount = Seller::where('status', 'pending')->count();
+                    $pendingItemApprovalsBadgeCount = Product::where('status', 'pending')->count();
                     $adminPendingNotificationsCount =
-                        Seller::where('status', 'pending')->count() +
-                        Product::where('status', 'pending')->count() +
+                        $pendingSellersBadgeCount +
+                        $pendingItemApprovalsBadgeCount +
                         Category::where('is_approved', false)->count();
                 } elseif ($user->isSeller()) {
                     $sellerUnreadNotificationsCount = $user->unreadNotifications()->count();
@@ -52,6 +56,8 @@ class AppServiceProvider extends ServiceProvider
             $view->with('cartBadgeCount', $cartBadgeCount);
             $view->with('adminPendingNotificationsCount', $adminPendingNotificationsCount);
             $view->with('sellerUnreadNotificationsCount', $sellerUnreadNotificationsCount);
+            $view->with('pendingSellersBadgeCount', $pendingSellersBadgeCount);
+            $view->with('pendingItemApprovalsBadgeCount', $pendingItemApprovalsBadgeCount);
         });
     }
 }

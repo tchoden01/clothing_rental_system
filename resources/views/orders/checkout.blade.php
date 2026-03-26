@@ -3,6 +3,9 @@
 @section('title', 'Checkout')
 
 @section('content')
+@php
+    $refundPlatformFee = filter_var(\App\Models\PlatformSetting::get('refund_platform_fee', '0'), FILTER_VALIDATE_BOOLEAN);
+@endphp
 <div class="container">
     <div class="row">
         <div class="col-12 mb-4">
@@ -140,6 +143,25 @@
                                 <small class="text-muted">Pay when you receive the items</small>
                             </label>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Cancellation Policy -->
+                <div class="card mb-4 border-warning-subtle">
+                    <div class="card-header bg-warning-subtle">
+                        <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> Cancellation Policy</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="mb-2 ps-3">
+                            <li>Cancellation is allowed only before the rental start date.</li>
+                            <li>100% refund if cancelled 48 or more hours before start date.</li>
+                            <li>50% refund if cancelled between 24 and less than 48 hours before start date.</li>
+                            <li>0% refund if cancelled less than 24 hours before start date.</li>
+                            <li>No cancellation and no refund on or after rental start date.</li>
+                        </ul>
+                        <small class="text-muted">
+                            Platform fee is {{ $refundPlatformFee ? 'refundable' : 'non-refundable' }} based on current platform setting.
+                        </small>
                     </div>
                 </div>
             </div>

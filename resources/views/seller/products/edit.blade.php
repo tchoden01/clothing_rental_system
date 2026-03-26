@@ -36,11 +36,22 @@
                             <select class="form-select @error('category_id') is-invalid @enderror" 
                                     id="category_id" name="category_id" required>
                                 <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" 
-                                            {{ (old('category_id', $product->category_id) == $category->id) ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
+                                @foreach($categories as $parentCategory)
+                                    @if($parentCategory->children->count() > 0)
+                                        <optgroup label="{{ $parentCategory->name }}">
+                                            @foreach($parentCategory->children as $childCategory)
+                                                <option value="{{ $childCategory->id }}"
+                                                    {{ (old('category_id', $product->category_id) == $childCategory->id) ? 'selected' : '' }}>
+                                                    {{ $childCategory->name }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @else
+                                        <option value="{{ $parentCategory->id }}"
+                                            {{ (old('category_id', $product->category_id) == $parentCategory->id) ? 'selected' : '' }}>
+                                            {{ $parentCategory->name }}
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
                             @error('category_id')
@@ -53,6 +64,32 @@
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                    id="name" name="name" value="{{ old('name', $product->name) }}" required>
                             @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">For *</label>
+                            <select class="form-select @error('gender') is-invalid @enderror" id="gender" name="gender" required>
+                                <option value="">Select Audience</option>
+                                <option value="men" {{ old('gender', $product->gender ?? $product->{'for'}) === 'men' ? 'selected' : '' }}>Men</option>
+                                <option value="women" {{ old('gender', $product->gender ?? $product->{'for'}) === 'women' ? 'selected' : '' }}>Women</option>
+                                <option value="kids" {{ old('gender', $product->gender ?? $product->{'for'}) === 'kids' ? 'selected' : '' }}>Kids</option>
+                                <option value="unisex" {{ old('gender', $product->gender ?? $product->{'for'}) === 'unisex' ? 'selected' : '' }}>Unisex</option>
+                            </select>
+                            @error('gender')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3" id="kidTypeWrapper" style="display: none;">
+                            <label for="kid_type" class="form-label">Kids Type *</label>
+                            <select class="form-select @error('kid_type') is-invalid @enderror" id="kid_type" name="kid_type">
+                                <option value="">Select Kids Type</option>
+                                <option value="boys" {{ old('kid_type', $product->kid_type) === 'boys' ? 'selected' : '' }}>Boys</option>
+                                <option value="girls" {{ old('kid_type', $product->kid_type) === 'girls' ? 'selected' : '' }}>Girls</option>
+                            </select>
+                            @error('kid_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -185,3 +222,27 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const genderSelect = document.getElementById('gender');
+        const kidTypeWrapper = document.getElementById('kidTypeWrapper');
+        const kidTypeSelect = document.getElementById('kid_type');
+
+        function toggleKidTypeField() {
+            const isKids = genderSelect && genderSelect.value === 'kids';
+            kidTypeWrapper.style.display = isKids ? 'block' : 'none';
+            kidTypeSelect.required = isKids;
+            if (!isKids) {
+                kidTypeSelect.value = '';
+            }
+        }
+
+        if (genderSelect) {
+            genderSelect.addEventListener('change', toggleKidTypeField);
+            toggleKidTypeField();
+        }
+    });
+</script>
+@endpush

@@ -224,7 +224,14 @@ class SellerController extends Controller
     // Show add product form
     public function createProduct()
     {
-        $categories = Category::where('is_approved', true)->orderBy('name')->get();
+        $categories = Category::where('is_approved', true)
+            ->whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->where('is_approved', true)->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
+
         return view('seller.products.create', compact('categories'));
     }
 
@@ -239,6 +246,8 @@ class SellerController extends Controller
 
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id,is_approved,1',
+            'gender' => 'required|in:men,women,kids,unisex',
+            'kid_type' => 'nullable|in:boys,girls|required_if:gender,kids',
             'name' => 'required|string|max:255',
             'size' => 'nullable|string',
             'material' => 'nullable|string|max:255',
@@ -264,6 +273,8 @@ class SellerController extends Controller
         Product::create([
             'seller_id' => $seller->id,
             'category_id' => $validated['category_id'],
+            'gender' => $validated['gender'],
+            'kid_type' => $validated['gender'] === 'kids' ? ($validated['kid_type'] ?? null) : null,
             'name' => $validated['name'],
             'size' => $validated['size'],
             'material' => $validated['material'] ?? null,
@@ -290,7 +301,13 @@ class SellerController extends Controller
     {
         $seller = Auth::user()->seller;
         $product = Product::where('seller_id', $seller->id)->findOrFail($id);
-        $categories = Category::where('is_approved', true)->orderBy('name')->get();
+        $categories = Category::where('is_approved', true)
+            ->whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->where('is_approved', true)->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
 
         return view('seller.products.edit', compact('product', 'categories'));
     }
@@ -303,6 +320,8 @@ class SellerController extends Controller
 
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id,is_approved,1',
+            'gender' => 'required|in:men,women,kids,unisex',
+            'kid_type' => 'nullable|in:boys,girls|required_if:gender,kids',
             'name' => 'required|string|max:255',
             'size' => 'nullable|string',
             'material' => 'nullable|string|max:255',
@@ -325,6 +344,8 @@ class SellerController extends Controller
 
         $product->update([
             'category_id' => $validated['category_id'],
+            'gender' => $validated['gender'],
+            'kid_type' => $validated['gender'] === 'kids' ? ($validated['kid_type'] ?? null) : null,
             'name' => $validated['name'],
             'size' => $validated['size'],
             'material' => $validated['material'] ?? null,

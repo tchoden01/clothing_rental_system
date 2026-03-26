@@ -79,7 +79,9 @@
         </div>
 
         <div class="mt-3">
-            {{ $customers->links() }}
+                    <div class="app-pagination">
+                        {{ $customers->links('pagination::tailwind') }}
+                    </div>
         </div>
     @else
         <div class="alert alert-info mb-0">

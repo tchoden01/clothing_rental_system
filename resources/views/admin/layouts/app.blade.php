@@ -37,6 +37,34 @@
             flex-direction: column;
         }
 
+        .app-pagination {
+            margin-top: 0.85rem;
+        }
+
+        .app-pagination nav[role="navigation"] > div:first-child {
+            display: none;
+        }
+
+        .app-pagination nav[role="navigation"] > div:last-child {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .app-pagination nav[role="navigation"] span,
+        .app-pagination nav[role="navigation"] a {
+            font-size: 0.8rem;
+            min-width: 1.9rem;
+            min-height: 1.9rem;
+            padding: 0.32rem 0.5rem;
+            line-height: 1.1;
+        }
+
+        .app-pagination nav[role="navigation"] svg {
+            width: 0.88rem;
+            height: 0.88rem;
+        }
+
         .admin-header {
             background: #fff;
             border-bottom: 1px solid #ded8cc;
@@ -477,21 +505,19 @@
     <div class="admin-layout">
         <aside class="admin-sidebar d-flex flex-column">
             @php
-                $pendingSellersBadgeCount = 0;
-                if (isset($pendingSellers)) {
-                    $pendingSellersBadgeCount = is_countable($pendingSellers) ? count($pendingSellers) : (int) $pendingSellers;
-                }
+                $pendingSellersBadgeCount = (int) ($pendingSellersBadgeCount ?? ($pendingSellers ?? 0));
+                $pendingItemApprovalsBadgeCount = (int) ($pendingItemApprovalsBadgeCount ?? ($pendingProducts ?? 0));
             @endphp
             <ul class="sidebar-nav">
                 <li><a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="bi bi-house-door-fill"></i><span>Dashboard</span></a></li>
                 <li><a href="{{ route('admin.customers') }}" class="sidebar-link {{ request()->routeIs('admin.customers*') ? 'active' : '' }}"><i class="bi bi-people"></i><span>Users</span></a></li>
                 <li><a href="{{ route('admin.sellers') }}" class="sidebar-link {{ request()->routeIs('admin.sellers*') ? 'active' : '' }}"><i class="bi bi-shop"></i><span>Sellers</span>@if($pendingSellersBadgeCount > 0)<span class="sidebar-badge">{{ $pendingSellersBadgeCount }}</span>@endif</a></li>
-                <li><a href="{{ route('admin.products') }}" class="sidebar-link {{ request()->routeIs('admin.products*') ? 'active' : '' }}"><i class="bi bi-ui-checks-grid"></i><span>Item Approvals</span></a></li>
+                <li><a href="{{ route('admin.products') }}" class="sidebar-link {{ request()->routeIs('admin.products*') ? 'active' : '' }}"><i class="bi bi-ui-checks-grid"></i><span>Item Approvals</span>@if($pendingItemApprovalsBadgeCount > 0)<span class="sidebar-badge">{{ $pendingItemApprovalsBadgeCount }}</span>@endif</a></li>
                 <li><a href="{{ route('admin.categories') }}" class="sidebar-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}"><i class="bi bi-tags"></i><span>Categories</span></a></li>
                 <li><a href="{{ route('admin.orders') }}" class="sidebar-link {{ request()->routeIs('admin.orders*') ? 'active' : '' }}"><i class="bi bi-bag-check"></i><span>Orders</span></a></li>
                 <li><a href="{{ route('admin.orders') }}" class="sidebar-link"><i class="bi bi-arrow-repeat"></i><span>Returns</span></a></li>
-                <li><a href="{{ route('admin.settings') }}" class="sidebar-link {{ request()->routeIs('admin.settings*') ? 'active' : '' }}"><i class="bi bi-credit-card"></i><span>Payments</span></a></li>
-                <li><a href="{{ route('admin.settings') }}" class="sidebar-link"><i class="bi bi-graph-up-arrow"></i><span>Commission Reports</span></a></li>
+                <li><a href="{{ route('admin.payments') }}" class="sidebar-link {{ request()->routeIs('admin.payments') ? 'active' : '' }}"><i class="bi bi-credit-card"></i><span>Payments</span></a></li>
+                <li><a href="{{ route('admin.commission-reports') }}" class="sidebar-link {{ request()->routeIs('admin.commission-reports') ? 'active' : '' }}"><i class="bi bi-graph-up-arrow"></i><span>Commission Reports</span></a></li>
                 <li><a href="{{ route('admin.pickups') }}" class="sidebar-link {{ request()->routeIs('admin.pickups*') ? 'active' : '' }}"><i class="bi bi-truck"></i><span>Pickup Management</span></a></li>
                 <li><a href="{{ route('admin.notifications') }}" class="sidebar-link {{ request()->routeIs('admin.notifications') ? 'active' : '' }}"><i class="bi bi-bell"></i><span>Notifications</span>@if(($adminPendingNotificationsCount ?? 0) > 0)<span class="notif-badge" title="{{ $adminPendingNotificationsCount }} pending admin item(s)">{{ $adminPendingNotificationsCount }}</span>@endif</a></li>
                 <li><a href="{{ route('admin.settings') }}" class="sidebar-link {{ request()->routeIs('admin.settings*') ? 'active' : '' }}"><i class="bi bi-gear"></i><span>Settings</span></a></li>

@@ -37,13 +37,18 @@ class AdminController extends Controller
         $pendingProducts = Product::where('status', 'pending')->count();
         $totalOrders = Order::count();
         $completedOrders = Order::where('status', 'completed')->count();
-        
-        $totalRevenue = Payment::where('status', 'completed')->sum('amount');
-        $totalCommission = Order::where('payment_status', 'paid')->sum('platform_commission');
+
+        $commissionRate = (float) PlatformSetting::get('commission_rate', 20);
+        $completedOrdersQuery = Order::where('status', 'completed');
+
+        $totalRevenue = (float) (clone $completedOrdersQuery)->sum('total_price');
+        $platformCommission = round($totalRevenue * ($commissionRate / 100), 2);
+        $sellerPayout = round($totalRevenue - $platformCommission, 2);
+
         $activeRentals = Order::whereNotIn('status', ['completed', 'cancelled'])->count();
-        $weeklyRevenue = Payment::where('status', 'completed')
+        $weeklyRevenue = Order::where('status', 'completed')
             ->where('created_at', '>=', now()->subDays(7))
-            ->sum('amount');
+            ->sum('total_price');
 
         $pendingSellerList = Seller::with('user')
             ->where('status', 'pending')
@@ -65,7 +70,7 @@ class AdminController extends Controller
         return view('admin.dashboard', compact(
             'totalUsers', 'totalSellers', 'pendingSellers',
             'totalProducts', 'pendingProducts', 'totalOrders',
-            'completedOrders', 'totalRevenue', 'totalCommission',
+            'completedOrders', 'totalRevenue', 'platformCommission', 'sellerPayout', 'commissionRate',
             'activeRentals', 'weeklyRevenue',
             'pendingSellerList', 'pendingProductList', 'recentOrders'
         ));
@@ -267,7 +272,7 @@ class AdminController extends Controller
     // View single order
     public function showOrder($id)
     {
-        $order = Order::with(['user', 'orderItems.product.seller', 'payment'])
+        $order = Order::with(['user', 'orderItems.product.seller', 'payment', 'refundOverriddenBy'])
             ->findOrFail($id);
 
         $commissionRate = (float) PlatformSetting::get('commission_rate', 15);
@@ -314,6 +319,47 @@ class AdminController extends Controller
             'orderSellerEarnings',
             'orderTotalPaid'
         ));
+    }
+
+    public function overrideOrderRefund(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'refund_percentage' => 'required|numeric|min:0|max:100',
+            'refund_override_note' => 'nullable|string|max:1000',
+        ]);
+
+        $order = Order::with('payment')->findOrFail($id);
+
+        if ($order->status !== 'cancelled') {
+            return back()->with('error', 'Refund override is allowed only for cancelled orders.');
+        }
+
+        $refund = $this->calculateRefundDetailsForOrder($order, (float) $validated['refund_percentage']);
+
+        $order->is_refund_overridden = true;
+        $order->refund_overridden_by = Auth::id();
+        $order->refund_override_at = now();
+        $order->refund_override_note = $validated['refund_override_note'] ?? null;
+        $order->cancellation_hours_before_start = $refund['hours_before_start'];
+        $order->refundable_base_amount = $refund['refundable_base_amount'];
+        $order->refund_percentage = $refund['refund_percentage'];
+        $order->refund_amount = $refund['refund_amount'];
+        $order->platform_fee_amount = $refund['platform_fee_amount'];
+        $order->platform_fee_refunded = $refund['platform_fee_refunded'];
+        $order->refund_processed_at = $order->payment_status === 'paid' ? now() : $order->refund_processed_at;
+
+        if ($order->payment_status === 'paid' && (float) $refund['refund_amount'] > 0) {
+            $order->payment_status = 'refunded';
+        }
+
+        $order->save();
+
+        if ($order->payment && $order->payment_status === 'refunded') {
+            $order->payment->status = 'refunded';
+            $order->payment->save();
+        }
+
+        return back()->with('success', 'Refund override updated. New refund: Nu. ' . number_format((float) $refund['refund_amount'], 2));
     }
 
     // Update order status
@@ -429,17 +475,52 @@ class AdminController extends Controller
     public function categories()
     {
         $categories = Category::withCount('products')
-            ->with('seller.user')
-            ->orderBy('is_approved', 'asc')
+            ->with([
+                'seller.user',
+                'children' => function ($query) {
+                    $query->withCount('products')
+                        ->with('seller.user')
+                        ->orderBy('name');
+                },
+            ])
+            ->whereNull('parent_id')
+            ->where('is_approved', true)
+            ->orderBy('name')
+            ->get();
+
+        $pendingCategories = Category::with('seller.user', 'parent')
+            ->where('is_approved', false)
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
-        return view('admin.categories.index', compact('categories'));
+            ->get();
+
+        return view('admin.categories.index', compact('categories', 'pendingCategories'));
     }
 
     // Create category
-    public function createCategory()
+    public function createCategory(Request $request)
     {
-        return view('admin.categories.create');
+        $selectedParentId = $request->integer('parent_id') ?: null;
+
+        $parentCategories = Category::whereNull('parent_id')
+            ->where('is_approved', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.categories.create', compact('parentCategories', 'selectedParentId'));
+    }
+
+    // Edit category
+    public function editCategory($id)
+    {
+        $category = Category::findOrFail($id);
+
+        $parentCategories = Category::whereNull('parent_id')
+            ->where('is_approved', true)
+            ->where('id', '!=', $category->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.categories.edit', compact('category', 'parentCategories'));
     }
 
     // Store category
@@ -448,16 +529,43 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories',
             'description' => 'nullable|string',
+            'parent_id' => 'nullable|exists:categories,id',
         ]);
 
         Category::create([
             'name' => $validated['name'],
+            'parent_id' => $validated['parent_id'] ?? null,
             'description' => $validated['description'] ?? null,
             'is_approved' => true,
             'seller_id' => null,
         ]);
 
         return redirect()->route('admin.categories')->with('success', 'Category created successfully!');
+    }
+
+    // Update category
+    public function updateCategory(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'description' => 'nullable|string',
+            'parent_id' => 'nullable|exists:categories,id',
+        ]);
+
+        $parentId = $validated['parent_id'] ?? null;
+        if ($parentId && (int) $parentId === (int) $category->id) {
+            return back()->with('error', 'A category cannot be its own parent.');
+        }
+
+        $category->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'parent_id' => $parentId,
+        ]);
+
+        return redirect()->route('admin.categories')->with('success', 'Category updated successfully!');
     }
 
     // Approve seller-submitted category
@@ -531,6 +639,10 @@ class AdminController extends Controller
     public function deleteCategory($id)
     {
         $category = Category::findOrFail($id);
+
+        if ($category->children()->count() > 0) {
+            return back()->with('error', 'Cannot delete a parent category that still has subcategories!');
+        }
         
         if ($category->products()->count() > 0) {
             return back()->with('error', 'Cannot delete category with products!');
@@ -544,7 +656,9 @@ class AdminController extends Controller
     public function settings()
     {
         $commissionRate = PlatformSetting::get('commission_rate', 15);
-        return view('admin.settings', compact('commissionRate'));
+        $refundPlatformFee = filter_var(PlatformSetting::get('refund_platform_fee', '0'), FILTER_VALIDATE_BOOLEAN);
+
+        return view('admin.settings', compact('commissionRate', 'refundPlatformFee'));
     }
 
     // Update settings
@@ -552,10 +666,93 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'commission_rate' => 'required|numeric|min:0|max:100',
+            'refund_platform_fee' => 'nullable|boolean',
         ]);
 
         PlatformSetting::set('commission_rate', $validated['commission_rate'], 'Platform commission rate in percentage');
+        PlatformSetting::set(
+            'refund_platform_fee',
+            !empty($validated['refund_platform_fee']) ? '1' : '0',
+            'Whether platform fee is refundable during order cancellation.'
+        );
 
         return back()->with('success', 'Settings updated successfully!');
+    }
+
+    // Payments report
+    public function paymentsReport()
+    {
+        $payments = Payment::with(['order.user'])
+            ->latest()
+            ->paginate(20);
+
+        $paymentSummary = [
+            'completed' => (float) Payment::where('status', 'completed')->sum('amount'),
+            'pending' => (float) Payment::where('status', 'pending')->sum('amount'),
+            'failed' => (float) Payment::where('status', 'failed')->sum('amount'),
+            'refunded' => (float) Payment::where('status', 'refunded')->sum('amount'),
+        ];
+
+        return view('admin.payments.index', compact('payments', 'paymentSummary'));
+    }
+
+    // Commission report
+    public function commissionReports()
+    {
+        $commissionRate = (float) PlatformSetting::get('commission_rate', 20);
+
+        $completedOrders = Order::with(['user', 'payment'])
+            ->where('status', 'completed')
+            ->latest()
+            ->paginate(20);
+
+        $totalRevenue = (float) Order::where('status', 'completed')->sum('total_price');
+        $platformCommission = round($totalRevenue * ($commissionRate / 100), 2);
+        $sellerPayout = round($totalRevenue - $platformCommission, 2);
+
+        return view('admin.reports.commission', compact(
+            'commissionRate',
+            'completedOrders',
+            'totalRevenue',
+            'platformCommission',
+            'sellerPayout'
+        ));
+    }
+
+    private function calculateRefundDetailsForOrder(Order $order, ?float $overridePercentage = null): array
+    {
+        $hoursBeforeStart = (int) max(now()->diffInHours(Carbon::parse($order->rental_start_date)->startOfDay(), false), 0);
+
+        $refundPercentage = $overridePercentage;
+        if ($refundPercentage === null) {
+            if ($hoursBeforeStart < 24) {
+                $refundPercentage = 0.0;
+            } elseif ($hoursBeforeStart < 48) {
+                $refundPercentage = 50.0;
+            } else {
+                $refundPercentage = 100.0;
+            }
+        }
+
+        $refundPercentage = min(max((float) $refundPercentage, 0), 100);
+
+        $platformFeeAmount = (float) $order->platform_commission;
+        $platformFeeRefunded = filter_var(PlatformSetting::get('refund_platform_fee', '0'), FILTER_VALIDATE_BOOLEAN);
+        $refundableBaseAmount = (float) $order->total_price;
+
+        if (!$platformFeeRefunded) {
+            $refundableBaseAmount = max($refundableBaseAmount - $platformFeeAmount, 0);
+        }
+
+        $refundAmount = round(($refundableBaseAmount * $refundPercentage) / 100, 2);
+
+        return [
+            'hours_before_start' => $hoursBeforeStart,
+            'refundable_base_amount' => $refundableBaseAmount,
+            'refund_percentage' => $refundPercentage,
+            'refund_amount' => $refundAmount,
+            'platform_fee_amount' => $platformFeeAmount,
+            'platform_fee_refunded' => $platformFeeRefunded,
+        ];
     }
 }

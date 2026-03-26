@@ -87,7 +87,9 @@
 
         <div class="row">
             <div class="col-12">
-                {{ $orderItems->links() }}
+                <div class="app-pagination">
+                    {{ $orderItems->links('pagination::tailwind') }}
+                </div>
             </div>
         </div>
     @else

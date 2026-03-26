@@ -25,6 +25,34 @@
             display: flex;
             flex-direction: column;
         }
+
+        .app-pagination {
+            margin-top: 0.85rem;
+        }
+
+        .app-pagination nav[role="navigation"] > div:first-child {
+            display: none;
+        }
+
+        .app-pagination nav[role="navigation"] > div:last-child {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .app-pagination nav[role="navigation"] span,
+        .app-pagination nav[role="navigation"] a {
+            font-size: 0.8rem;
+            min-width: 1.9rem;
+            min-height: 1.9rem;
+            padding: 0.32rem 0.5rem;
+            line-height: 1.1;
+        }
+
+        .app-pagination nav[role="navigation"] svg {
+            width: 0.88rem;
+            height: 0.88rem;
+        }
         
         /* Header */
         .seller-header {

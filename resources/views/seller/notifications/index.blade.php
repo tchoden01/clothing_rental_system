@@ -64,7 +64,9 @@
     </div>
 
     <div class="mt-3">
-        {{ $notifications->links() }}
+           <div class="mt-4 app-pagination">
+              {{ $notifications->links('pagination::tailwind') }}
+           </div>
     </div>
 </div>
 @endsection

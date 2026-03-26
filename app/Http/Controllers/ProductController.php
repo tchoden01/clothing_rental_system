@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\OrderItem;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class ProductController extends Controller
@@ -14,7 +16,7 @@ class ProductController extends Controller
     {
         $query = Product::with(['seller', 'category'])
             ->where('is_approved', true)
-            ->whereIn('status', ['approved', 'available']);
+            ->where('status', '!=', 'rejected');
 
         // Search functionality
         if ($request->has('search')) {
@@ -81,6 +83,19 @@ class ProductController extends Controller
             }
         }
 
+        // Audience filter (For)
+        $forFilter = $request->input('for');
+        if (!is_null($forFilter)) {
+            $forValues = is_array($forFilter) ? $forFilter : [$forFilter];
+            $forValues = array_values(array_filter($forValues, function ($value) {
+                return in_array($value, ['men', 'women', 'kids', 'unisex'], true);
+            }));
+
+            if (!empty($forValues)) {
+                $query->whereIn('gender', $forValues);
+            }
+        }
+
         // Occasion filter (applies only when the products table has the column)
         $occasionFilter = $request->input('occasion');
         if (!is_null($occasionFilter) && Schema::hasColumn('products', 'occasion')) {
@@ -113,7 +128,25 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(12);
-        $categories = Category::where('is_approved', true)->orderBy('name')->get();
+
+        $activeRentalItems = $this->getActiveRentalItemsForProductIds(
+            $products->getCollection()->pluck('id')->all()
+        );
+
+        $products->setCollection(
+            $products->getCollection()->map(function (Product $product) use ($activeRentalItems) {
+                $this->attachAvailabilityMeta($product, $activeRentalItems[$product->id] ?? null);
+                return $product;
+            })
+        );
+
+        $categories = Category::where('is_approved', true)
+            ->whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->where('is_approved', true)->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
 
         return view('products.index', compact('products', 'categories'));
     }
@@ -123,7 +156,11 @@ class ProductController extends Controller
     {
         $product = Product::with(['seller.user', 'category'])
             ->where('is_approved', true)
+            ->where('status', '!=', 'rejected')
             ->findOrFail($id);
+
+        $activeRentalItem = $this->getActiveRentalItemsForProductIds([$product->id])->get($product->id);
+        $this->attachAvailabilityMeta($product, $activeRentalItem);
 
         return view('products.show', compact('product'));
     }
@@ -135,15 +172,85 @@ class ProductController extends Controller
         
         $products = Product::with(['seller', 'category'])
             ->where('is_approved', true)
-            ->whereIn('status', ['approved', 'available'])
+            ->where('status', '!=', 'rejected')
             ->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
-            })
+            });
+
+        $forFilter = $request->input('for');
+        if (!is_null($forFilter)) {
+            $forValues = is_array($forFilter) ? $forFilter : [$forFilter];
+            $forValues = array_values(array_filter($forValues, function ($value) {
+                return in_array($value, ['men', 'women', 'kids', 'unisex'], true);
+            }));
+
+            if (!empty($forValues)) {
+                $products->whereIn('gender', $forValues);
+            }
+        }
+
+        $products = $products
             ->paginate(12);
 
-        $categories = Category::where('is_approved', true)->orderBy('name')->get();
+        $activeRentalItems = $this->getActiveRentalItemsForProductIds(
+            $products->getCollection()->pluck('id')->all()
+        );
+
+        $products->setCollection(
+            $products->getCollection()->map(function (Product $product) use ($activeRentalItems) {
+                $this->attachAvailabilityMeta($product, $activeRentalItems[$product->id] ?? null);
+                return $product;
+            })
+        );
+
+        $categories = Category::where('is_approved', true)
+            ->whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->where('is_approved', true)->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
 
         return view('products.index', compact('products', 'categories', 'search'));
+    }
+
+    private function getActiveRentalItemsForProductIds(array $productIds)
+    {
+        if (empty($productIds)) {
+            return collect();
+        }
+
+        $activeOrderStatuses = ['ongoing', 'confirmed', 'collected_from_seller', 'picked_up_by_customer', 'in_use'];
+
+        return OrderItem::with('order:id,status')
+            ->whereIn('product_id', $productIds)
+            ->whereHas('order', function ($query) use ($activeOrderStatuses) {
+                $query->whereIn('status', $activeOrderStatuses);
+            })
+            ->orderBy('rental_end_date', 'desc')
+            ->get()
+            ->groupBy('product_id')
+            ->map(function ($items) {
+                return $items->first();
+            });
+    }
+
+    private function attachAvailabilityMeta(Product $product, ?OrderItem $activeRentalItem): void
+    {
+        $isCurrentlyRented = false;
+        $returnDate = null;
+
+        if ($activeRentalItem && $activeRentalItem->rental_end_date) {
+            $returnDate = Carbon::parse($activeRentalItem->rental_end_date);
+            $isCurrentlyRented = $returnDate->endOfDay()->gte(now());
+        }
+
+        $product->is_currently_rented = $isCurrentlyRented;
+        $product->return_date = $returnDate;
+        $product->is_returning_soon = $isCurrentlyRented
+            && $returnDate
+            && now()->diffInDays($returnDate, false) <= 3;
+        $product->is_rentable_now = !$isCurrentlyRented && (int) $product->quantity > 0;
     }
 }
