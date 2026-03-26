@@ -682,6 +682,12 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="{{ route('seller.pickups') }}" class="sidebar-nav-link {{ request()->routeIs('seller.pickups*') ? 'active' : '' }}">
+                        <i class="bi bi-truck"></i>
+                        <span>Pickup Management</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a href="{{ route('seller.notifications') }}" class="sidebar-nav-link {{ request()->routeIs('seller.notifications*') ? 'active' : '' }}">
                         <i class="bi bi-bell"></i>
                         <span>Notifications</span>

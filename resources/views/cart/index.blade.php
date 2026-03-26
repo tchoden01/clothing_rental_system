@@ -72,8 +72,8 @@
                             @foreach($cartItems as $item)
                                 <div class="row mb-3 pb-3 border-bottom">
                                     <div class="col-md-2">
-                                        @if($item->product->images && count($item->product->images) > 0)
-                                            <img src="{{ asset('storage/' . $item->product->images[0]) }}" class="img-fluid" alt="{{ $item->product->name }}">
+                                        @if($item->product->primary_image_url)
+                                            <img src="{{ $item->product->primary_image_url }}" class="img-fluid" alt="{{ $item->product->name }}">
                                         @else
                                             <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 80px;">
                                                 <i class="bi bi-image"></i>

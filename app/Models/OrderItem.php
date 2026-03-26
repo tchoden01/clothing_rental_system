@@ -16,6 +16,9 @@ class OrderItem extends Model
         'quantity',
         'rental_price',
         'seller_earnings',
+        'payout_status',
+        'payout_released_at',
+        'payout_released_by',
         'rental_start_date',
         'rental_end_date',
         'return_status',
@@ -24,6 +27,7 @@ class OrderItem extends Model
     protected $casts = [
         'rental_price' => 'decimal:2',
         'seller_earnings' => 'decimal:2',
+        'payout_released_at' => 'datetime',
         'rental_start_date' => 'date',
         'rental_end_date' => 'date',
     ];
@@ -67,5 +71,13 @@ class OrderItem extends Model
     {
         return $this->hasOne(DamageReport::class, 'product_id', 'product_id')
             ->whereColumn('damage_reports.order_id', 'order_items.order_id');
+    }
+
+    /**
+     * Admin user who released this payout.
+     */
+    public function payoutReleasedBy()
+    {
+        return $this->belongsTo(User::class, 'payout_released_by');
     }
 }

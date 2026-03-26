@@ -297,9 +297,9 @@
             @forelse($products->take(4) as $product)
                 <div class="col-md-6 col-lg-3 mb-4">
                     <div class="card product-card">
-                        @if($product->images && count($product->images) > 0)
+                        @if($product->primary_image_url)
                             <a href="{{ route('products.show', $product->id) }}" class="d-block" aria-label="View details for {{ $product->name }}">
-                                <img src="{{ asset('storage/' . $product->images[0]) }}" class="card-img-top" alt="{{ $product->name }}">
+                                <img src="{{ $product->primary_image_url }}" class="card-img-top" alt="{{ $product->name }}">
                             </a>
                         @else
                             <div class="d-flex align-items-center justify-content-center" style="height: 300px; background: linear-gradient(135deg, #e8e3dc 0%, #d4cfc4 100%);">

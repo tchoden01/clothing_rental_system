@@ -26,8 +26,8 @@
                     @foreach($orderItemsBreakdown as $item)
                         <div class="row mb-3 pb-3 border-bottom">
                             <div class="col-md-2">
-                                @if($item->product && $item->product->images && count($item->product->images) > 0)
-                                    <img src="{{ asset('storage/' . $item->product->images[0]) }}" 
+                                @if($item->product && $item->product->primary_image_url)
+                                    <img src="{{ $item->product->primary_image_url }}" 
                                          class="img-fluid" alt="{{ $item->product->name }}">
                                 @endif
                             </div>

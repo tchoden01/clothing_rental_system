@@ -31,8 +31,8 @@
                         <tr class="{{ $product->status === 'pending' ? 'table-warning' : '' }}">
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if($product->images && count($product->images) > 0)
-                                        <img src="{{ asset('storage/' . $product->images[0]) }}" 
+                                    @if($product->primary_image_url)
+                                        <img src="{{ $product->primary_image_url }}" 
                                              class="me-2 admin-product-thumb" alt="{{ $product->name }}">
                                     @else
                                         <div class="admin-product-empty d-flex align-items-center justify-content-center me-2">

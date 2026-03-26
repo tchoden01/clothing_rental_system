@@ -84,13 +84,14 @@ class OrderController extends Controller
                 'user_id' => Auth::id(),
                 'order_number' => Order::generateOrderNumber(),
                 'total_price' => $total,
+                'total_amount' => $total,
                 'platform_commission' => $commission,
                 'delivery_method' => $validated['delivery_method'],
                 'delivery_address' => $validated['delivery_address'] ?? Auth::user()->address,
                 'rental_start_date' => $validated['rental_start_date'],
                 'rental_end_date' => $validated['rental_end_date'],
-                'status' => 'pending',
-                'payment_status' => 'pending',
+                'status' => 'confirmed',
+                'payment_status' => 'paid',
             ]);
 
             // Create order items
@@ -129,19 +130,12 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'payment_method' => $validated['payment_method'],
                 'amount' => $total,
-                'status' => $validated['payment_method'] === 'digital' ? 'completed' : 'pending',
-                'transaction_id' => $validated['payment_method'] === 'digital' ? 'TXN-' . uniqid() : null,
+                'status' => 'paid',
+                'transaction_id' => 'TXN-' . uniqid(),
             ]);
 
-            // Update order payment status if digital payment
-            if ($validated['payment_method'] === 'digital') {
-                $order->payment_status = 'paid';
-                $order->status = 'confirmed';
-                $order->save();
-
-                // Confirmed orders should enter pickup lifecycle immediately.
-                Pickup::ensureForOrder($order);
-            }
+            // Confirmed paid orders should enter pickup lifecycle immediately.
+            Pickup::ensureForOrder($order);
 
             // Clear cart
             Cart::where('user_id', Auth::id())->delete();
@@ -163,10 +157,74 @@ class OrderController extends Controller
     // Show user orders
     public function index()
     {
-        $orders = Order::with(['orderItems.product', 'payment'])
+        $orders = Order::with(['orderItems.product', 'payment', 'pickups'])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+
+        $orders->getCollection()->transform(function ($order) {
+            $order->calculated_total = (float) $order->orderItems->sum(function ($item) {
+                $unitPrice = (float) ($item->rental_price ?? optional($item->product)->rental_price ?? 0);
+                $quantity = max((int) $item->quantity, 0);
+
+                return max($unitPrice, 0) * $quantity;
+            });
+
+            $hasActualPaidPayment = $order->payment
+                && (float) $order->payment->amount > 0
+                && in_array($order->payment->status, ['paid', 'completed'], true);
+
+            if (($order->payment_status === 'refunded') || ($order->payment && $order->payment->status === 'refunded')) {
+                $order->display_payment_status = 'refunded';
+            } elseif ($hasActualPaidPayment) {
+                $order->display_payment_status = 'paid';
+            } else {
+                $order->display_payment_status = 'pending';
+            }
+
+            $ongoingStatuses = [
+                'collected_from_seller',
+                'picked_up_by_customer',
+                'in_use',
+                'returned_by_customer',
+                'returned_to_seller',
+            ];
+
+            if ($order->status === 'completed') {
+                $order->display_order_status = 'completed';
+            } elseif (in_array($order->status, $ongoingStatuses, true)) {
+                $order->display_order_status = 'ongoing';
+            } else {
+                $order->display_order_status = 'confirmed';
+            }
+
+            $pickupRanking = [
+                'pending' => 1,
+                'ready' => 2,
+                'picked_up' => 3,
+                'in_use' => 4,
+                'returned' => 5,
+                'completed' => 6,
+            ];
+
+            $mostAdvancedPickupStatus = $order->pickups
+                ->pluck('pickup_status')
+                ->filter()
+                ->sortByDesc(fn ($status) => $pickupRanking[$status] ?? 0)
+                ->first();
+
+            if (in_array($mostAdvancedPickupStatus, ['returned', 'completed'], true)) {
+                $order->display_pickup_status = 'returned';
+            } elseif (in_array($mostAdvancedPickupStatus, ['picked_up', 'in_use'], true)) {
+                $order->display_pickup_status = 'picked_up';
+            } elseif ($mostAdvancedPickupStatus === 'ready') {
+                $order->display_pickup_status = 'ready';
+            } else {
+                $order->display_pickup_status = 'pending';
+            }
+
+            return $order;
+        });
 
         $refundPreviews = [];
         foreach ($orders as $order) {
@@ -179,9 +237,69 @@ class OrderController extends Controller
     // Show single order
     public function show($id)
     {
-        $order = Order::with(['orderItems.product.seller', 'payment'])
+        $order = Order::with(['orderItems.product.seller', 'payment', 'pickups'])
             ->where('user_id', Auth::id())
             ->findOrFail($id);
+
+        $order->calculated_total = (float) $order->orderItems->sum(function ($item) {
+            $unitPrice = (float) ($item->rental_price ?? optional($item->product)->rental_price ?? 0);
+            $quantity = max((int) $item->quantity, 0);
+
+            return max($unitPrice, 0) * $quantity;
+        });
+
+        $hasActualPaidPayment = $order->payment
+            && (float) $order->payment->amount > 0
+            && in_array($order->payment->status, ['paid', 'completed'], true);
+
+        if (($order->payment_status === 'refunded') || ($order->payment && $order->payment->status === 'refunded')) {
+            $order->display_payment_status = 'refunded';
+        } elseif ($hasActualPaidPayment) {
+            $order->display_payment_status = 'paid';
+        } else {
+            $order->display_payment_status = 'pending';
+        }
+
+        $ongoingStatuses = [
+            'collected_from_seller',
+            'picked_up_by_customer',
+            'in_use',
+            'returned_by_customer',
+            'returned_to_seller',
+        ];
+
+        if ($order->status === 'completed') {
+            $order->display_order_status = 'completed';
+        } elseif (in_array($order->status, $ongoingStatuses, true)) {
+            $order->display_order_status = 'ongoing';
+        } else {
+            $order->display_order_status = 'confirmed';
+        }
+
+        $pickupRanking = [
+            'pending' => 1,
+            'ready' => 2,
+            'picked_up' => 3,
+            'in_use' => 4,
+            'returned' => 5,
+            'completed' => 6,
+        ];
+
+        $mostAdvancedPickupStatus = $order->pickups
+            ->pluck('pickup_status')
+            ->filter()
+            ->sortByDesc(fn ($status) => $pickupRanking[$status] ?? 0)
+            ->first();
+
+        if (in_array($mostAdvancedPickupStatus, ['returned', 'completed'], true)) {
+            $order->display_pickup_status = 'returned';
+        } elseif (in_array($mostAdvancedPickupStatus, ['picked_up', 'in_use'], true)) {
+            $order->display_pickup_status = 'picked_up';
+        } elseif ($mostAdvancedPickupStatus === 'ready') {
+            $order->display_pickup_status = 'ready';
+        } else {
+            $order->display_pickup_status = 'pending';
+        }
 
         $refundPreview = $this->calculateRefundDetails($order);
 

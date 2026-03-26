@@ -4,12 +4,9 @@
 
 @section('content')
 @php
-    $computedOrderTotal = $order->orderItems->sum(function ($item) {
-        $days = \Carbon\Carbon::parse($item->rental_start_date)->diffInDays($item->rental_end_date);
-        $days = max($days, 1);
-
-        return $item->rental_price * $item->quantity * $days;
-    });
+    $computedOrderTotal = (float) ($order->calculated_total ?? $order->orderItems->sum(function ($item) {
+        return ((float) $item->rental_price) * ((int) $item->quantity);
+    }));
 
     $refundPreview = $refundPreview ?? [
         'can_cancel' => false,
@@ -49,8 +46,8 @@
                     @foreach($order->orderItems as $item)
                         <div class="row mb-4 pb-4 {{ !$loop->last ? 'border-bottom' : '' }}">
                             <div class="col-md-3">
-                                @if($item->product->images && count($item->product->images) > 0)
-                                    <img src="{{ asset('storage/' . $item->product->images[0]) }}" 
+                                @if($item->product->primary_image_url)
+                                    <img src="{{ $item->product->primary_image_url }}" 
                                          alt="{{ $item->product->name }}" 
                                          class="img-fluid rounded">
                                 @else
@@ -106,9 +103,25 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <span class="badge bg-info p-2 w-100">
-                            {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                        </span>
+                        @if(($order->display_order_status ?? 'confirmed') === 'completed')
+                            <span class="badge bg-secondary p-2 w-100">Completed</span>
+                        @elseif(($order->display_order_status ?? 'confirmed') === 'ongoing')
+                            <span class="badge p-2 w-100" style="background:#6f42c1; color:#fff;">Ongoing</span>
+                        @else
+                            <span class="badge bg-primary p-2 w-100">Confirmed</span>
+                        @endif
+                    </div>
+
+                    <div class="mb-3">
+                        @if(($order->display_pickup_status ?? 'pending') === 'returned')
+                            <span class="badge w-100 p-2" style="background:#fd7e14; color:#fff;">Pickup: Returned</span>
+                        @elseif(($order->display_pickup_status ?? 'pending') === 'picked_up')
+                            <span class="badge bg-success w-100 p-2">Pickup: Picked Up</span>
+                        @elseif(($order->display_pickup_status ?? 'pending') === 'ready')
+                            <span class="badge bg-primary w-100 p-2">Pickup: Ready</span>
+                        @else
+                            <span class="badge bg-warning text-dark w-100 p-2">Pickup: Pending</span>
+                        @endif
                     </div>
                     
                     @if($canCancelOrder)
@@ -143,11 +156,11 @@
                 <div class="card-body">
                     <p class="mb-2">
                         <strong>Status:</strong> 
-                        @if($order->payment_status == 'paid')
+                        @if(($order->display_payment_status ?? 'pending') === 'paid')
                             <span class="badge bg-success">Paid</span>
-                        @elseif($order->payment_status == 'refunded')
+                        @elseif(($order->display_payment_status ?? 'pending') === 'refunded')
                             <span class="badge bg-secondary">Refunded</span>
-                        @elseif($order->payment_status == 'pending')
+                        @elseif(($order->display_payment_status ?? 'pending') === 'pending')
                             <span class="badge bg-warning">Pending</span>
                         @else
                             <span class="badge bg-danger">Failed</span>

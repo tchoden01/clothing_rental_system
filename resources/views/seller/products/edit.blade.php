@@ -186,13 +186,13 @@
                             </div>
                         </div>
 
-                        @if($product->images && count($product->images) > 0)
+                        @if(count($product->image_urls) > 0)
                             <div class="mb-3">
                                 <label class="form-label">Current Images</label>
                                 <div class="row">
-                                    @foreach($product->images as $image)
+                                    @foreach($product->image_urls as $imageUrl)
                                         <div class="col-md-3 mb-2">
-                                            <img src="{{ asset('storage/' . $image) }}" 
+                                            <img src="{{ $imageUrl }}" 
                                                  class="img-thumbnail seller-edit-thumb" alt="Product image">
                                         </div>
                                     @endforeach

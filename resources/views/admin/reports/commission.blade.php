@@ -39,7 +39,7 @@
                     <tbody>
                         @forelse($completedOrders as $order)
                             @php
-                                $orderRevenue = (float) $order->total_price;
+                                $orderRevenue = (float) ($order->total_amount ?? $order->total_price ?? 0);
                                 $orderCommission = round($orderRevenue * ((float) $commissionRate / 100), 2);
                                 $orderSellerPayout = round($orderRevenue - $orderCommission, 2);
                             @endphp

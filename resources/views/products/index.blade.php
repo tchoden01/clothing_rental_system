@@ -291,13 +291,11 @@
 @php
     $selectedCategories = array_map('strval', (array) request('category', []));
     $selectedSizes = array_map('strval', (array) request('size', []));
-    $selectedColors = array_map('strval', (array) request('color', []));
     $selectedFor = array_map('strval', (array) request('for', []));
     $selectedOccasions = array_map('strval', (array) request('occasion', []));
     $selectedSort = request('sort', 'newest');
 
     $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
-    $colors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Multi-color', 'Pink', 'Mix'];
     $forOptions = [
         'men' => 'Men',
         'women' => 'Women',
@@ -383,21 +381,6 @@
                     </section>
 
                     <section class="filter-section">
-                        <button type="button" class="filter-section-toggle" data-filter-target="color-content" data-filter-icon="color-icon">
-                            <span>Colors</span>
-                            <i class="bi bi-chevron-down" id="color-icon"></i>
-                        </button>
-                        <div class="filter-section-content show" id="color-content">
-                            @foreach($colors as $color)
-                                <label class="filter-option">
-                                    <input type="checkbox" name="color[]" value="{{ $color }}" {{ in_array((string) $color, $selectedColors, true) ? 'checked' : '' }} onchange="applyFilter()">
-                                    <span>{{ $color }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </section>
-
-                    <section class="filter-section">
                         <button type="button" class="filter-section-toggle" data-filter-target="for-content" data-filter-icon="for-icon">
                             <span>For</span>
                             <i class="bi bi-chevron-down" id="for-icon"></i>
@@ -448,8 +431,8 @@
                             <div class="col-xl-4 col-md-6">
                                 <article class="product-card">
                                     <div class="product-image-wrap {{ !$product->is_rentable_now ? 'is-unavailable' : '' }}">
-                                        @if($product->images && count($product->images) > 0)
-                                            <img src="{{ asset('storage/' . $product->images[0]) }}" alt="{{ $product->name }}">
+                                        @if($product->primary_image_url)
+                                            <img src="{{ $product->primary_image_url }}" alt="{{ $product->name }}">
                                         @else
                                             <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: #ede8df; border-radius: 8px;">
                                                 <i class="bi bi-image" style="font-size: 2.8rem; color: #9f968a;"></i>

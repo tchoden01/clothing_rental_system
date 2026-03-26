@@ -104,6 +104,10 @@ Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function (
     Route::get('/orders', [SellerController::class, 'orders'])->name('orders');
     Route::get('/orders/{id}/return', [SellerController::class, 'returnForm'])->name('orders.return');
     Route::post('/orders/{id}/return', [SellerController::class, 'processReturn'])->name('orders.return.process');
+
+    // Pickup Management
+    Route::get('/pickups', [SellerController::class, 'pickups'])->name('pickups');
+    Route::post('/pickups/{id}/status', [SellerController::class, 'updatePickupStatus'])->name('pickups.status');
 });
 
 // Admin routes (authenticated + admin role)
@@ -135,7 +139,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Pickup Management
     Route::get('/pickups', [AdminController::class, 'pickups'])->name('pickups');
-    Route::post('/pickups/{id}/status', [AdminController::class, 'updatePickupStatus'])->name('pickups.status');
+    Route::post('/pickups/{id}/force-update', [AdminController::class, 'forceUpdatePickupStatus'])->name('pickups.force-update');
     
     // Categories
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
@@ -150,6 +154,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
     Route::get('/payments', [AdminController::class, 'paymentsReport'])->name('payments');
+    Route::post('/payouts/{orderItemId}/release', [AdminController::class, 'releaseSellerPayout'])->name('payouts.release');
     Route::get('/commission-reports', [AdminController::class, 'commissionReports'])->name('commission-reports');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');

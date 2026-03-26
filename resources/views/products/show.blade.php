@@ -88,16 +88,16 @@
                 @endif
             </div>
 
-            @if($product->images && count($product->images) > 0)
+            @if(count($product->image_urls) > 0)
                 <div id="productCarousel" class="carousel slide product-image-frame" data-bs-ride="carousel">
                     <div class="carousel-inner">
-                        @foreach($product->images as $index => $image)
+                        @foreach($product->image_urls as $index => $imageUrl)
                             <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                                <img src="{{ asset('storage/' . $image) }}" class="d-block w-100 product-image-full" alt="{{ $product->name }}">
+                                <img src="{{ $imageUrl }}" class="d-block w-100 product-image-full" alt="{{ $product->name }}">
                             </div>
                         @endforeach
                     </div>
-                    @if(count($product->images) > 1)
+                    @if(count($product->image_urls) > 1)
                         <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
                             <span class="carousel-control-prev-icon"></span>
                         </button>

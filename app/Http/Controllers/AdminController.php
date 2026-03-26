@@ -41,14 +41,17 @@ class AdminController extends Controller
         $commissionRate = (float) PlatformSetting::get('commission_rate', 20);
         $completedOrdersQuery = Order::where('status', 'completed');
 
-        $totalRevenue = (float) (clone $completedOrdersQuery)->sum('total_price');
+        $totalRevenue = (float) (clone $completedOrdersQuery)
+            ->selectRaw('COALESCE(SUM(COALESCE(total_amount, total_price)), 0) as aggregate_total')
+            ->value('aggregate_total');
         $platformCommission = round($totalRevenue * ($commissionRate / 100), 2);
         $sellerPayout = round($totalRevenue - $platformCommission, 2);
 
         $activeRentals = Order::whereNotIn('status', ['completed', 'cancelled'])->count();
-        $weeklyRevenue = Order::where('status', 'completed')
+        $weeklyRevenue = (float) Order::where('status', 'completed')
             ->where('created_at', '>=', now()->subDays(7))
-            ->sum('total_price');
+            ->selectRaw('COALESCE(SUM(COALESCE(total_amount, total_price)), 0) as aggregate_total')
+            ->value('aggregate_total');
 
         $pendingSellerList = Seller::with('user')
             ->where('status', 'pending')
@@ -260,11 +263,75 @@ class AdminController extends Controller
     }
 
     // List all orders
-    public function orders()
+    public function orders(Request $request)
     {
-        $orders = Order::with(['user', 'orderItems.product'])
+        $orders = Order::with(['user', 'orderItems.product', 'payment', 'pickups'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
+
+        $orders->getCollection()->transform(function ($order) {
+            $order->calculated_total = (float) $order->orderItems->sum(function ($item) {
+                $unitPrice = (float) ($item->rental_price ?? optional($item->product)->rental_price ?? 0);
+                $quantity = max((int) $item->quantity, 0);
+
+                return max($unitPrice, 0) * $quantity;
+            });
+
+            $hasActualPaidPayment = $order->payment
+                && (float) $order->payment->amount > 0
+                && $order->payment->status === 'paid';
+
+            if (($order->payment_status === 'refunded') || ($order->payment && $order->payment->status === 'refunded')) {
+                $order->display_payment_status = 'refunded';
+            } elseif ($hasActualPaidPayment) {
+                $order->display_payment_status = 'paid';
+            } else {
+                $order->display_payment_status = 'pending';
+            }
+
+            $ongoingStatuses = [
+                'collected_from_seller',
+                'picked_up_by_customer',
+                'in_use',
+                'returned_by_customer',
+                'returned_to_seller',
+            ];
+
+            if ($order->status === 'completed') {
+                $order->display_order_status = 'completed';
+            } elseif (in_array($order->status, $ongoingStatuses, true)) {
+                $order->display_order_status = 'ongoing';
+            } else {
+                $order->display_order_status = 'confirmed';
+            }
+
+            $pickupRanking = [
+                'pending' => 1,
+                'ready' => 2,
+                'picked_up' => 3,
+                'in_use' => 4,
+                'returned' => 5,
+                'completed' => 6,
+            ];
+
+            $mostAdvancedPickupStatus = $order->pickups
+                ->pluck('pickup_status')
+                ->filter()
+                ->sortByDesc(fn ($status) => $pickupRanking[$status] ?? 0)
+                ->first();
+
+            if (in_array($mostAdvancedPickupStatus, ['returned', 'completed'], true)) {
+                $order->display_pickup_status = 'returned';
+            } elseif (in_array($mostAdvancedPickupStatus, ['picked_up', 'in_use'], true)) {
+                $order->display_pickup_status = 'picked_up';
+            } elseif ($mostAdvancedPickupStatus === 'ready') {
+                $order->display_pickup_status = 'ready';
+            } else {
+                $order->display_pickup_status = 'pending';
+            }
+
+            return $order;
+        });
 
         return view('admin.orders.index', compact('orders'));
     }
@@ -410,30 +477,40 @@ class AdminController extends Controller
                 Pickup::ensureForOrder($order);
             });
 
-        $pickups = Pickup::with(['order', 'orderItem.product', 'seller.user', 'customer'])
+        $pickupsQuery = Pickup::with(['order', 'orderItem.product', 'seller.user', 'customer']);
+
+        $filterOrderId = request()->integer('order_id');
+        if ($filterOrderId) {
+            $pickupsQuery->where('order_id', $filterOrderId);
+        }
+
+        $pickups = $pickupsQuery
             ->orderBy('pickup_date')
             ->orderByDesc('id')
             ->paginate(20);
 
         $statusLabels = Pickup::statusLabels();
+        $statusBadgeClasses = Pickup::statusBadgeClasses();
 
-        return view('admin.pickups.index', compact('pickups', 'statusLabels'));
+        return view('admin.pickups.index', compact('pickups', 'statusLabels', 'statusBadgeClasses'));
     }
 
-    // Update pickup status
-    public function updatePickupStatus(Request $request, $id)
+    // Optional admin override for pickup status
+    public function forceUpdatePickupStatus(Request $request, $id)
     {
-        $allowedStatuses = array_keys(Pickup::statusLabels());
-
         $validated = $request->validate([
-            'pickup_status' => 'required|in:' . implode(',', $allowedStatuses),
+            'pickup_status' => 'required|in:' . implode(',', Pickup::statuses()),
         ]);
 
         $pickup = Pickup::findOrFail($id);
-        $pickup->pickup_status = $validated['pickup_status'];
-        $pickup->save();
 
-        return back()->with('success', 'Pickup status updated successfully.');
+        if (!$pickup->pickup_status) {
+            return back()->with('error', 'Pickup status is missing and cannot be updated.');
+        }
+
+        $pickup->transitionTo($validated['pickup_status'], true);
+
+        return back()->with('success', 'Pickup status force updated successfully.');
     }
 
     // Notifications center for pending admin actions
@@ -686,14 +763,73 @@ class AdminController extends Controller
             ->latest()
             ->paginate(20);
 
+        $commissionRate = (float) PlatformSetting::get('commission_rate', 20);
+
+        $paidCompletedOrders = Order::where('status', 'completed')
+            ->where('payment_status', 'paid');
+
+        $totalAmount = (float) (clone $paidCompletedOrders)
+            ->selectRaw('COALESCE(SUM(COALESCE(total_amount, total_price)), 0) as aggregate_total')
+            ->value('aggregate_total');
+
+        $platformCommission = round($totalAmount * ($commissionRate / 100), 2);
+        $sellerPayout = round($totalAmount - $platformCommission, 2);
+
+        $payoutSummary = [
+            'pending' => (float) OrderItem::where('payout_status', 'pending')->sum('seller_earnings'),
+            'released' => (float) OrderItem::where('payout_status', 'released')->sum('seller_earnings'),
+        ];
+
+        $payoutItems = OrderItem::with(['order.user', 'product', 'seller.user', 'payoutReleasedBy'])
+            ->whereHas('order', function ($query) {
+                $query->where('status', 'completed')->where('payment_status', 'paid');
+            })
+            ->orderByRaw("CASE WHEN payout_status = 'pending' THEN 0 ELSE 1 END")
+            ->orderByDesc('created_at')
+            ->paginate(20, ['*'], 'payout_page');
+
         $paymentSummary = [
-            'completed' => (float) Payment::where('status', 'completed')->sum('amount'),
+            'completed' => (float) Payment::whereIn('status', ['paid', 'completed'])->sum('amount'),
             'pending' => (float) Payment::where('status', 'pending')->sum('amount'),
             'failed' => (float) Payment::where('status', 'failed')->sum('amount'),
             'refunded' => (float) Payment::where('status', 'refunded')->sum('amount'),
         ];
 
-        return view('admin.payments.index', compact('payments', 'paymentSummary'));
+        return view('admin.payments.index', compact(
+            'payments',
+            'paymentSummary',
+            'totalAmount',
+            'platformCommission',
+            'sellerPayout',
+            'commissionRate',
+            'payoutSummary',
+            'payoutItems'
+        ));
+    }
+
+    // Release payout to seller for completed paid order item.
+    public function releaseSellerPayout($orderItemId)
+    {
+        $orderItem = OrderItem::with('order')->findOrFail($orderItemId);
+
+        if (!$orderItem->order || $orderItem->order->status !== 'completed') {
+            return back()->with('error', 'Payout can only be released for completed orders.');
+        }
+
+        if ($orderItem->order->payment_status !== 'paid') {
+            return back()->with('error', 'Payout can only be released after customer payment is marked paid.');
+        }
+
+        if ($orderItem->payout_status === 'released') {
+            return back()->with('info', 'This payout has already been released.');
+        }
+
+        $orderItem->payout_status = 'released';
+        $orderItem->payout_released_at = now();
+        $orderItem->payout_released_by = Auth::id();
+        $orderItem->save();
+
+        return back()->with('success', 'Seller payout released successfully.');
     }
 
     // Commission report
@@ -706,7 +842,9 @@ class AdminController extends Controller
             ->latest()
             ->paginate(20);
 
-        $totalRevenue = (float) Order::where('status', 'completed')->sum('total_price');
+        $totalRevenue = (float) Order::where('status', 'completed')
+            ->selectRaw('COALESCE(SUM(COALESCE(total_amount, total_price)), 0) as aggregate_total')
+            ->value('aggregate_total');
         $platformCommission = round($totalRevenue * ($commissionRate / 100), 2);
         $sellerPayout = round($totalRevenue - $platformCommission, 2);
 

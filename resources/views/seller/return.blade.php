@@ -20,8 +20,8 @@
                             <h6 class="card-title">Product Details</h6>
                             <div class="row">
                                 <div class="col-md-3">
-                                    @if($orderItem->product->images && count($orderItem->product->images) > 0)
-                                        <img src="{{ asset('storage/' . $orderItem->product->images[0]) }}" 
+                                    @if($orderItem->product->primary_image_url)
+                                        <img src="{{ $orderItem->product->primary_image_url }}" 
                                              class="img-fluid" alt="{{ $orderItem->product->name }}">
                                     @endif
                                 </div>

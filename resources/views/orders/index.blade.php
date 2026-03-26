@@ -4,6 +4,17 @@
 
 @section('content')
 <div class="container">
+    <style>
+        .badge-order-confirmed { background: #0d6efd; }
+        .badge-order-ongoing { background: #6f42c1; }
+        .badge-order-completed { background: #6c757d; }
+
+        .badge-pickup-pending { background: #ffc107; color: #212529; }
+        .badge-pickup-ready { background: #0d6efd; }
+        .badge-pickup-picked-up { background: #198754; }
+        .badge-pickup-returned { background: #fd7e14; color: #fff; }
+    </style>
+
     <div class="row mb-4">
         <div class="col-12">
             <h2>My Orders</h2>
@@ -27,16 +38,33 @@
                                 <small class="text-muted">{{ $order->created_at->format('d M Y, h:i A') }}</small>
                             </div>
                             <div>
-                                @if($order->payment_status == 'paid')
+                                @if($order->display_payment_status === 'paid')
                                     <span class="badge bg-success">Paid</span>
-                                @elseif($order->payment_status == 'refunded')
+                                @elseif($order->display_payment_status === 'refunded')
                                     <span class="badge bg-secondary">Refunded</span>
-                                @elseif($order->payment_status == 'pending')
+                                @elseif($order->display_payment_status === 'pending')
                                     <span class="badge bg-warning">Payment Pending</span>
                                 @else
                                     <span class="badge bg-danger">Payment Failed</span>
                                 @endif
-                                <span class="badge bg-info">{{ ucwords(str_replace('_', ' ', $order->status)) }}</span>
+
+                                @if($order->display_order_status === 'completed')
+                                    <span class="badge badge-order-completed">Completed</span>
+                                @elseif($order->display_order_status === 'ongoing')
+                                    <span class="badge badge-order-ongoing">Ongoing</span>
+                                @else
+                                    <span class="badge badge-order-confirmed">Confirmed</span>
+                                @endif
+
+                                @if($order->display_pickup_status === 'returned')
+                                    <span class="badge badge-pickup-returned">Pickup: Returned</span>
+                                @elseif($order->display_pickup_status === 'picked_up')
+                                    <span class="badge badge-pickup-picked-up">Pickup: Picked Up</span>
+                                @elseif($order->display_pickup_status === 'ready')
+                                    <span class="badge badge-pickup-ready">Pickup: Ready</span>
+                                @else
+                                    <span class="badge badge-pickup-pending">Pickup: Pending</span>
+                                @endif
                             </div>
                         </div>
                         <div class="card-body">
@@ -45,8 +73,8 @@
                                     <h6 class="mb-3">Order Items</h6>
                                     @foreach($order->orderItems as $item)
                                         <div class="d-flex mb-3 pb-3 border-bottom">
-                                            @if($item->product->images && count($item->product->images) > 0)
-                                                <img src="{{ asset('storage/' . $item->product->images[0]) }}" 
+                                            @if($item->product->primary_image_url)
+                                                <img src="{{ $item->product->primary_image_url }}" 
                                                      alt="{{ $item->product->name }}" 
                                                      style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;" 
                                                      class="me-3">
@@ -74,7 +102,7 @@
                                     <div class="bg-light p-3 rounded">
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Total:</span>
-                                            <strong>Nu. {{ number_format($order->total_price, 2) }}</strong>
+                                            <strong>Nu. {{ number_format($order->calculated_total, 2) }}</strong>
                                         </div>
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Payment:</span>

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\OrderItem;
 use App\Models\DamageReport;
+use App\Models\Pickup;
 use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -375,12 +376,111 @@ class SellerController extends Controller
     public function orders()
     {
         $seller = Auth::user()->seller;
-        $orderItems = OrderItem::with(['order.user', 'product'])
+        $orderItems = OrderItem::with(['order.user', 'order.payment', 'product.category', 'pickup'])
             ->where('seller_id', $seller->id)
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
+        $orderItems->getCollection()->transform(function ($item) {
+            $unitPrice = (float) ($item->rental_price ?? optional($item->product)->rental_price ?? 0);
+            $quantity = max((int) $item->quantity, 0);
+            $item->line_total = max($unitPrice, 0) * $quantity;
+
+            $hasActualPaidPayment = $item->order
+                && $item->order->payment
+                && (float) $item->order->payment->amount > 0
+                && in_array($item->order->payment->status, ['paid', 'completed'], true);
+
+            if (($item->order && $item->order->payment_status === 'refunded')
+                || ($item->order && $item->order->payment && $item->order->payment->status === 'refunded')) {
+                $item->display_payment_status = 'refunded';
+            } elseif ($hasActualPaidPayment) {
+                $item->display_payment_status = 'paid';
+            } else {
+                $item->display_payment_status = 'pending';
+            }
+
+            $orderStatus = optional($item->order)->status;
+            $ongoingStatuses = [
+                'collected_from_seller',
+                'picked_up_by_customer',
+                'in_use',
+                'returned_by_customer',
+                'returned_to_seller',
+            ];
+
+            if ($orderStatus === 'completed') {
+                $item->display_order_status = 'completed';
+            } elseif (in_array($orderStatus, $ongoingStatuses, true)) {
+                $item->display_order_status = 'ongoing';
+            } else {
+                $item->display_order_status = 'confirmed';
+            }
+
+            $pickupStatus = optional($item->pickup)->pickup_status;
+            if (in_array($pickupStatus, ['returned', 'completed'], true)) {
+                $item->display_pickup_status = 'returned';
+            } elseif (in_array($pickupStatus, ['picked_up', 'in_use'], true)) {
+                $item->display_pickup_status = 'picked_up';
+            } elseif ($pickupStatus === 'ready') {
+                $item->display_pickup_status = 'ready';
+            } else {
+                $item->display_pickup_status = 'pending';
+            }
+
+            return $item;
+        });
+
         return view('seller.orders', compact('orderItems'));
+    }
+
+    // Seller pickup management list
+    public function pickups()
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        $pickupsQuery = Pickup::with(['order', 'orderItem.product', 'customer'])
+            ->where('seller_id', $seller->id);
+
+        $filterOrderId = request()->integer('order_id');
+        if ($filterOrderId) {
+            $pickupsQuery->where('order_id', $filterOrderId);
+        }
+
+        $pickups = $pickupsQuery
+            ->orderBy('pickup_date')
+            ->orderByDesc('id')
+            ->paginate(20);
+
+        return view('seller.pickups.index', compact('pickups'));
+    }
+
+    // Seller pickup status update (strict next-step only)
+    public function updatePickupStatus(Request $request, $id)
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return redirect()->route('home')->with('error', 'You are not registered as a seller.');
+        }
+
+        $validated = $request->validate([
+            'pickup_status' => 'required|in:' . implode(',', Pickup::statuses()),
+        ]);
+
+        $pickup = Pickup::where('seller_id', $seller->id)->findOrFail($id);
+
+        if (!Pickup::canTransition($pickup->pickup_status, $validated['pickup_status'])) {
+            return back()->with('error', 'Invalid status transition. Please follow the workflow step-by-step.');
+        }
+
+        $pickup->transitionTo($validated['pickup_status']);
+
+        return back()->with('success', 'Pickup status updated to ' . strtolower($pickup->status_label) . '.');
     }
 
     // Handle return and damage report

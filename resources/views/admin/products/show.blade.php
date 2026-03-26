@@ -21,17 +21,21 @@
                     <strong>Product Images</strong>
                 </div>
                 <div class="card-body">
-                    @if($product->images && count($product->images) > 0)
+                    @if(count($product->image_urls) > 0)
                         <div class="product-images-grid">
-                            @foreach($product->images as $image)
+                            @foreach($product->image_urls as $imageUrl)
                                 <div class="product-image-frame rounded border">
                                     <img
-                                        src="{{ asset('storage/' . $image) }}"
+                                        src="{{ $imageUrl }}"
                                         alt="{{ $product->name }}"
                                         class="product-image-fit"
                                     >
                                 </div>
                             @endforeach
+                        </div>
+                    @elseif($product->images && count($product->images) > 0)
+                        <div class="alert alert-warning mb-0">
+                            Image records exist, but the files were not found in storage. Ask the seller to re-upload photos.
                         </div>
                     @else
                         <div class="text-muted">No product images uploaded.</div>

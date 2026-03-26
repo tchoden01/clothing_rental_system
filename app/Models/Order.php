@@ -13,6 +13,7 @@ class Order extends Model
         'user_id',
         'order_number',
         'total_price',
+        'total_amount',
         'platform_commission',
         'delivery_method',
         'delivery_address',
@@ -37,6 +38,7 @@ class Order extends Model
 
     protected $casts = [
         'total_price' => 'decimal:2',
+        'total_amount' => 'decimal:2',
         'platform_commission' => 'decimal:2',
         'rental_start_date' => 'date',
         'rental_end_date' => 'date',

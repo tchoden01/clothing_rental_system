@@ -38,8 +38,8 @@
             @foreach($products as $product)
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
-                        @if($product->images && count($product->images) > 0)
-                            <img src="{{ asset('storage/' . $product->images[0]) }}" 
+                        @if($product->primary_image_url)
+                            <img src="{{ $product->primary_image_url }}" 
                                  class="card-img-top seller-product-thumb" alt="{{ $product->name }}">
                         @else
                             <div class="seller-product-empty text-muted d-flex align-items-center justify-content-center">

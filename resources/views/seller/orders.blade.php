@@ -21,9 +21,11 @@
                         <th>Customer</th>
                         <th>Quantity</th>
                         <th>Rental Period</th>
-                        <th>Price</th>
+                        <th>Total</th>
                         <th>Earnings</th>
                         <th>Payment Status</th>
+                        <th>Order Status</th>
+                        <th>Pickup Status</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -34,8 +36,8 @@
                             <td>#{{ $item->order_id }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if($item->product->images && count($item->product->images) > 0)
-                                        <img src="{{ asset('storage/' . $item->product->images[0]) }}" 
+                                    @if($item->product->primary_image_url)
+                                        <img src="{{ $item->product->primary_image_url }}" 
                                              class="me-2" alt="{{ $item->product->name }}" 
                                              style="width: 50px; height: 50px; object-fit: cover;">
                                     @endif
@@ -55,29 +57,55 @@
                                 <small class="text-muted">to</small><br>
                                 {{ \Carbon\Carbon::parse($item->rental_end_date)->format('d M Y') }}
                             </td>
-                            <td>Nu. {{ number_format($item->price, 2) }}</td>
+                            <td>Nu. {{ number_format($item->line_total, 2) }}</td>
                             <td>
                                 <strong class="text-success">Nu. {{ number_format($item->seller_earnings, 2) }}</strong>
                             </td>
                             <td>
-                                @if($item->order->payment_status == 'paid')
+                                @if($item->display_payment_status === 'paid')
                                     <span class="badge bg-success">Paid</span>
-                                @elseif($item->order->payment_status == 'pending')
+                                @elseif($item->display_payment_status === 'refunded')
+                                    <span class="badge bg-secondary">Refunded</span>
+                                @elseif($item->display_payment_status === 'pending')
                                     <span class="badge bg-warning">Pending</span>
                                 @else
                                     <span class="badge bg-danger">Failed</span>
                                 @endif
                             </td>
+                            <td>
+                                @if($item->display_order_status === 'completed')
+                                    <span class="badge bg-secondary">Completed</span>
+                                @elseif($item->display_order_status === 'ongoing')
+                                    <span class="badge" style="background:#6f42c1; color:#fff;">Ongoing</span>
+                                @else
+                                    <span class="badge bg-primary">Confirmed</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->display_pickup_status === 'returned')
+                                    <span class="badge" style="background:#fd7e14; color:#fff;">Returned</span>
+                                @elseif($item->display_pickup_status === 'picked_up')
+                                    <span class="badge bg-success">Picked Up</span>
+                                @elseif($item->display_pickup_status === 'ready')
+                                    <span class="badge bg-primary">Ready</span>
+                                @else
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                @endif
+                            </td>
                             <td>{{ $item->created_at->format('d M Y') }}</td>
                             <td>
-                                @if($item->order->payment_status == 'paid' && \Carbon\Carbon::now()->gte($item->rental_end_date))
-                                    <a href="{{ route('seller.orders.return', $item->id) }}" 
-                                       class="btn btn-sm btn-outline-primary">
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('seller.pickups', ['order_id' => $item->order_id]) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-truck"></i> Manage Pickup
+                                    </a>
+                                @if($item->display_payment_status === 'paid' && \Carbon\Carbon::now()->gte($item->rental_end_date))
+                                    <a href="{{ route('seller.orders.return', $item->id) }}" class="btn btn-sm btn-outline-primary">
                                         Process Return
                                     </a>
                                 @else
-                                    <small class="text-muted">Ongoing</small>
+                                    <span class="small text-muted align-self-center">Ongoing</span>
                                 @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
